@@ -1,0 +1,47 @@
+import Link from "next/link";
+import { Logo } from "@/components/logo";
+import { Button } from "@/components/ui/button";
+
+export default function MarketingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
+        <div className="mx-auto flex h-16 w-full max-w-[1100px] items-center justify-between px-4">
+          <Logo />
+          <nav className="flex items-center gap-2">
+            <Button variant="ghost" render={<Link href="/login" />}>
+              Entrar
+            </Button>
+            <Button render={<Link href="/diagnostico" />}>
+              Diagnóstico grátis
+            </Button>
+          </nav>
+        </div>
+      </header>
+      <main className="flex-1">{children}</main>
+      <footer className="border-t bg-surface">
+        <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-1">
+            <Logo className="text-base" />
+            <p>Gestão ativa de reputação para negócios locais brasileiros.</p>
+          </div>
+          <div className="flex flex-col gap-1 sm:items-end">
+            <div className="flex gap-4">
+              <Link href="#" className="underline-offset-4 hover:text-foreground hover:underline">
+                Política de Privacidade
+              </Link>
+              <Link href="#" className="underline-offset-4 hover:text-foreground hover:underline">
+                Termos de Uso
+              </Link>
+            </div>
+            <p>© 2026 Reputamax</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
