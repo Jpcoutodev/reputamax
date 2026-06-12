@@ -9,9 +9,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 import { ScoreRing, scoreLabel } from "@/components/score-ring";
 import { saveLead, useDiagnosis } from "@/components/diagnostico/use-diagnosis";
-import { emailProvider } from "@/lib/providers";
 
 const leadSchema = z.object({
   email: z.string().email("Digite um e-mail válido — é pra onde enviamos o relatório."),
@@ -27,8 +27,8 @@ const leadSchema = z.object({
 export default function TeaserPage() {
   const router = useRouter();
   const params = useParams<{ diagnosticoId: string }>();
-  const placeId = params.diagnosticoId;
-  const { business, competitors, result, loading, error } = useDiagnosis(placeId);
+  const diagnosticoId = params.diagnosticoId;
+  const { business, result, loading, error } = useDiagnosis(diagnosticoId);
 
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -49,9 +49,13 @@ export default function TeaserPage() {
     }
     setFieldErrors({});
     setSubmitting(true);
-    saveLead(placeId, parsed.data.email, parsed.data.whatsapp);
-    await emailProvider.sendDiagnosisReport(parsed.data.email, placeId);
-    router.push(`/diagnostico/${placeId}/relatorio`);
+    const saved = await saveLead(diagnosticoId, parsed.data.email, parsed.data.whatsapp);
+    if (!saved) {
+      setSubmitting(false);
+      toast.error("Não foi possível salvar. Verifique sua conexão e tente de novo.");
+      return;
+    }
+    router.push(`/diagnostico/${diagnosticoId}/relatorio`);
   }
 
   if (error) {
@@ -73,8 +77,8 @@ export default function TeaserPage() {
     );
   }
 
-  const avgCompetitors =
-    competitors.reduce((s, c) => s + c.rating, 0) / (competitors.length || 1);
+  // média dos concorrentes derivada do gap calculado pela análise
+  const avgCompetitors = business.rating - result.ratingGapVsCompetitors;
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-8 px-4 py-16">

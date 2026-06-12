@@ -8,28 +8,38 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { updateOnboardingSteps } from "@/app/(app)/actions";
+import type { OnboardingSteps } from "@/lib/data/business";
 
 const STORAGE_KEY = "reputamax_onboarding_steps";
 
-interface StepState {
-  perfil: boolean;
-  pagina: boolean;
-  qr: boolean;
-  primeiras: boolean;
-}
-
-const defaultSteps: StepState = { perfil: false, pagina: false, qr: false, primeiras: false };
+const defaultSteps: OnboardingSteps = {
+  perfil: false,
+  pagina: false,
+  qr: false,
+  primeiras: false,
+};
 
 interface ChecklistProps {
   slug: string;
   businessName: string;
+  initialSteps: OnboardingSteps;
+  /** true quando o estado vive no banco (Supabase configurado) */
+  persisted: boolean;
 }
 
-export function ActivationChecklist({ slug, businessName }: ChecklistProps) {
-  const [steps, setSteps] = useState<StepState>(defaultSteps);
-  const [loaded, setLoaded] = useState(false);
+export function ActivationChecklist({
+  slug,
+  businessName,
+  initialSteps,
+  persisted,
+}: ChecklistProps) {
+  const [steps, setSteps] = useState<OnboardingSteps>(initialSteps);
+  const [loaded, setLoaded] = useState(persisted);
 
+  // modo demonstração: estado vem do localStorage
   useEffect(() => {
+    if (persisted) return;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) setSteps({ ...defaultSteps, ...JSON.parse(raw) });
@@ -37,12 +47,16 @@ export function ActivationChecklist({ slug, businessName }: ChecklistProps) {
       // estado corrompido: recomeça do zero
     }
     setLoaded(true);
-  }, []);
+  }, [persisted]);
 
-  function update(partial: Partial<StepState>) {
+  function update(partial: Partial<OnboardingSteps>) {
     setSteps((prev) => {
       const next = { ...prev, ...partial };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      if (persisted) {
+        updateOnboardingSteps(partial).catch(() => {});
+      } else {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      }
       return next;
     });
   }
@@ -100,7 +114,7 @@ export function ActivationChecklist({ slug, businessName }: ChecklistProps) {
             <li key={item.key}>
               <Link
                 href={item.href}
-                onClick={() => update({ [item.key]: true } as Partial<StepState>)}
+                onClick={() => update({ [item.key]: true } as Partial<OnboardingSteps>)}
                 className={cn(
                   "flex items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors hover:border-primary",
                   steps[item.key] && "opacity-60"

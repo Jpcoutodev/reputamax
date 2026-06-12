@@ -1,15 +1,21 @@
 import Link from "next/link";
-import { LogOut } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { BottomNav, SidebarNav } from "@/components/app-shell/nav";
-import { getDemoBusiness } from "@/lib/mock-data/app-data";
+import { LogoutButton } from "@/components/app-shell/logout-button";
+import { getCurrentBusiness, trialDaysLeft } from "@/lib/data/business";
 
-const TRIAL_DAYS_LEFT = 11; // fase mock: cálculo real virá de businesses.trial_ends_at
+const planLabels: Record<string, string> = {
+  trial: "Trial gratuito",
+  essencial: "Plano Essencial",
+  pro: "Plano Pro",
+};
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const business = getDemoBusiness();
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const business = await getCurrentBusiness();
+  const daysLeft = trialDaysLeft(business);
+  const isTrial = business.plan === "trial";
+  const planLabel = planLabels[business.plan] ?? business.plan;
 
   return (
     <div className="flex min-h-screen">
@@ -26,23 +32,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           >
             <div className="flex flex-col">
               <span className="text-xs font-medium text-accent-foreground">
-                Trial gratuito
+                {planLabel}
               </span>
-              <span className="text-xs text-muted-foreground">
-                {TRIAL_DAYS_LEFT} dias restantes
-              </span>
+              {isTrial ? (
+                <span className="text-xs text-muted-foreground">
+                  {daysLeft} dia{daysLeft === 1 ? "" : "s"} restante{daysLeft === 1 ? "" : "s"}
+                </span>
+              ) : null}
             </div>
             <Badge>Ver planos</Badge>
           </Link>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="justify-start text-muted-foreground"
-            render={<Link href="/login" />}
-          >
-            <LogOut className="size-4" />
-            Sair
-          </Button>
+          <LogoutButton />
         </div>
       </aside>
 
@@ -57,7 +57,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </p>
           <Link href="/planos" className="flex items-center gap-2">
             <Badge variant="secondary" className="bg-accent text-accent-foreground">
-              Trial · {TRIAL_DAYS_LEFT} dias restantes
+              {isTrial ? `Trial · ${daysLeft} dias restantes` : planLabel}
             </Badge>
           </Link>
         </header>

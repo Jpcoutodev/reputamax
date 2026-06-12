@@ -36,13 +36,21 @@ export function ReviewFunnel({
   const [highThanks, setHighThanks] = useState(false);
 
   async function recordResponse(payload: Record<string, unknown>) {
-    // fase mock: a gravação real em funnel_responses entra com o Supabase
-    console.info("[review-funnel mock]", { slug, ...payload });
+    try {
+      await fetch("/api/review-funnel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, ...payload }),
+      });
+    } catch {
+      // a experiência do cliente final nunca quebra por falha de gravação
+      console.warn("[review-funnel] não foi possível gravar a resposta");
+    }
   }
 
   async function handleHighRating() {
     if (previewMode) return;
-    await recordResponse({ rating, redirected_to_google: Boolean(reviewLink) });
+    await recordResponse({ rating, redirectedToGoogle: Boolean(reviewLink) });
     if (reviewLink) {
       window.open(reviewLink, "_blank", "noopener");
     }
@@ -55,10 +63,10 @@ export function ReviewFunnel({
     setSubmitting(true);
     await recordResponse({
       rating,
-      redirected_to_google: false,
-      feedback_text: feedback,
-      customer_name: customerName || undefined,
-      customer_contact: customerContact || undefined,
+      redirectedToGoogle: false,
+      feedbackText: feedback,
+      customerName: customerName || undefined,
+      customerContact: customerContact || undefined,
     });
     router.push(`/r/${slug}/obrigado`);
   }

@@ -1,6 +1,10 @@
-# Reputamax — Especificação completa do produto (v1, mock-first)
+# Reputamax — Especificação completa do produto (v2)
 
 > **Instrução para o agente de código:** Este documento é a fonte única de verdade do projeto. Construa o fluxo completo e todas as telas usando **dados mock** por trás de uma camada de abstração (seção 5). As APIs reais (Google Business Profile, WhatsApp, pagamentos) serão conectadas depois — o código deve estar pronto para essa troca sem refatoração das telas.
+
+> **Status (v2, jun/2026):** telas + Supabase (auth, RLS, rotas de API) entregues com **modo dual**: sem `.env.local` o app roda 100% em demonstração (mocks); com as chaves, vira real automaticamente (detector: `supabaseConfigured()` em `src/lib/supabase/config.ts`). Manter esse padrão em todo código novo. Próximo: Google Places API (busca) → GBP API (aguardando aprovação do Google).
+
+> **Atenção à versão do framework:** o projeto usa Next.js 16 — `middleware.ts` virou **`proxy.ts`**, `cookies()`/`params` são **async**, e o shadcn/ui instalado é a variante **Base UI** (`render={<Link/>}` no lugar de `asChild`; `onValueChange` entrega `string | null`). Consultar `node_modules/next/dist/docs/` antes de usar qualquer convenção do Next.
 
 ---
 
@@ -164,12 +168,23 @@ export interface AnalysisProvider {
 ```
 
 ```ts
-// lib/providers/index.ts
-const useMocks = process.env.NEXT_PUBLIC_DATA_MODE !== 'live';
-export const reviewProvider: ReviewDataProvider = useMocks ? mockReviewProvider : googleReviewProvider;
-export const analysisProvider: AnalysisProvider = useMocks ? mockAnalysisProvider : anthropicAnalysisProvider;
-export const emailProvider: EmailProvider = useMocks ? consoleEmailProvider : resendEmailProvider;
+// lib/providers/index.ts — toggles INDEPENDENTES por provider:
+// a busca pode estar live (Places API) enquanto análise e e-mail seguem mock.
+const reviewsLive = process.env.NEXT_PUBLIC_DATA_MODE === 'live';
+const aiProvider = process.env.NEXT_PUBLIC_AI_PROVIDER;               // mock | minimax | anthropic
+const emailLive = process.env.NEXT_PUBLIC_EMAIL_MODE === 'live';      // fase Resend
+
+export const reviewProvider: ReviewDataProvider = reviewsLive ? googleReviewProvider : mockReviewProvider;
+export const analysisProvider: AnalysisProvider =
+  aiProvider === 'minimax' ? minimaxAnalysisProvider
+  : aiProvider === 'anthropic' ? anthropicAnalysisProvider
+  : mockAnalysisProvider;
+export const emailProvider: EmailProvider = emailLive ? resendEmailProvider : consoleEmailProvider;
 ```
+
+**Importante:** providers reais usam chaves de servidor — client components nunca chamam `reviewProvider`/`analysisProvider` diretamente; a busca passa por `/api/places/search` e a sugestão de resposta por `/api/ai/suggest-reply`. Caminhos demo no browser importam os mocks diretamente (`reviews/mock`, `analysis/mock`).
+
+**Análise IA híbrida (MiniMax):** as métricas (score, gap, taxas) são SEMPRE determinísticas — o LLM não inventa números. A IA gera só a parte qualitativa (resumo, problemas, recomendações, temas, respostas) e, em qualquer falha, o resultado determinístico é o fallback — o diagnóstico nunca quebra.
 
 **Comportamento dos mocks:**
 - `searchBusiness`: filtra uma lista de ~12 negócios fictícios brasileiros (seção 14) por nome; simular latência de 300–600 ms.
@@ -258,9 +273,10 @@ create table reviews (
 
 **Políticas RLS (padrão para todas as tabelas com `business_id`):**
 - `select/insert/update/delete` permitidos apenas quando o `business_id` pertence a um negócio cujo `owner_id = auth.uid()`.
-- `funnel_responses`: além da policy do dono, criar policy de **insert anônimo** (role `anon`) — a página pública grava sem login. Validar no servidor (rota de API) que o `business_id` existe e limitar payload.
-- `diagnostics`: insert e select por `anon` permitidos apenas via rotas de API com service role; não expor select direto ao client.
-- **Teste obrigatório:** criar 2 usuários de teste e verificar que um não enxerga dados do outro.
+- **Regra de ouro: nenhuma policy para o role `anon`.** RLS é por linha, não por coluna — uma policy de leitura pública em `businesses` exporia `owner_id`, `plan` e `trial_ends_at` de todos os negócios. Tudo que é público (página `/r/[slug]`, gravação do funil, diagnósticos) passa por **rota de API/server component com service role**, que valida payload com Zod e seleciona apenas as colunas necessárias.
+- `funnel_responses`: insert exclusivamente via `/api/review-funnel` (service role + validação + checagem de slug). Campos de feedback só são gravados quando `rating <= 3`.
+- `diagnostics`: acesso exclusivamente via rotas de API com service role; sem select direto do client.
+- **Teste obrigatório:** criar 2 usuários e verificar que um não enxerga dados do outro; verificar com a anon key crua (curl no PostgREST) que `businesses`, `diagnostics` e `funnel_responses` retornam vazio/erro.
 
 ---
 
@@ -474,9 +490,37 @@ A troca deve exigir apenas: implementar o provider real + `NEXT_PUBLIC_DATA_MODE
 
 ## 17. Fora de escopo agora (NÃO construir)
 
-- Integração real com qualquer API do Google.
 - Disparo real de e-mail ou WhatsApp.
 - Checkout/pagamentos.
 - Geração de PDF do relatório de diagnóstico (botão desabilitado).
 - Multi-localização (1 negócio por conta nesta fase; modelar pensando em N no futuro).
 - Painel administrativo interno.
+
+---
+
+## 18. Segurança e qualidade de código (obrigatório em todo código novo)
+
+### Segredos e chaves
+- `SUPABASE_SERVICE_ROLE_KEY`, `GOOGLE_MAPS_API_KEY`, `ANTHROPIC_API_KEY`, `RESEND_API_KEY`: **somente em código de servidor** (rotas de API, server components, server actions). Nunca em arquivos importados por client components. Marcar módulos sensíveis com `import "server-only"`.
+- Chave do Google: restringir no console à Places API e, em produção, por referrer/IP. **Rotacionar a service role key antes do lançamento público** (ela transitou em canais de desenvolvimento).
+- `.env*` está no `.gitignore` — conferir antes de cada commit que nenhum segredo entrou no repositório.
+
+### Entradas e saídas
+- **Toda** rota de API e server action valida payload com Zod (tipos, tamanhos máximos, enum). Nada de `body as X`.
+- Parâmetros de redirect (`?redirect=`, `?next=`) só aceitam caminhos internos: `startsWith("/") && !startsWith("//")` — open redirect é vetor de phishing.
+- Mensagens de erro para o usuário em PT-BR e sem vazar detalhes internos; detalhes vão para `console.error` no servidor.
+
+### Endpoints públicos (sem login)
+- `/api/diagnostico` (create), `/api/review-funnel`: são alvo natural de spam/abuso. Antes do lançamento: **rate limiting por IP** (Upstash Ratelimit ou similar) + limites de tamanho de payload (já aplicados via Zod `max()`).
+- Idempotência onde fizer sentido (ex.: `analyze` retorna o resultado existente se já rodou).
+
+### Padrões de arquitetura (manter)
+- **Modo dual**: todo recurso novo precisa funcionar sem `.env.local` (fallback demo) e com Supabase (real). Detector central: `supabaseConfigured()` / `supabaseAdminConfigured()`.
+- **Camada de providers**: nenhuma tela chama API externa diretamente; tudo via `lib/providers`. Toggles independentes por provider (busca pode estar live enquanto análise segue mock).
+- **Server components buscam, client components interagem**: dados via funções em `lib/data/*` (com `cache()` para deduplicar por request); mutações do dono via server actions em `(app)/actions.ts`; mutações públicas via rotas de API com service role.
+- Componentes de UI compartilhados (anel de score, estrelas, busca) têm um dono único — sem cópias divergentes.
+
+### Qualidade
+- `npm run build` limpo (TypeScript estrito, sem `any` para silenciar erro) antes de considerar qualquer entrega pronta.
+- Testes unitários prioritários: gerador determinístico de avaliações, cálculo de score, helpers de slug — são as funções com lógica de negócio pura.
+- Acessibilidade mínima em tudo: labels, `aria-*` em controles custom, foco visível.

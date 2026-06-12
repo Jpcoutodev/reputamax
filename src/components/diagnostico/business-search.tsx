@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, MapPin, Search, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { reviewProvider, type BusinessSearchResult } from "@/lib/providers";
+import type { BusinessSearchResult } from "@/lib/providers/types";
 
 interface BusinessSearchProps {
   /** "inline": resultados empurram o conteúdo (página /diagnostico).
@@ -36,8 +36,14 @@ export function BusinessSearch({
     }
     setLoading(true);
     debounceRef.current = setTimeout(async () => {
-      const found = await reviewProvider.searchBusiness(query);
-      setResults(found);
+      try {
+        // a busca roda no servidor (chave do Google nunca vai ao browser)
+        const res = await fetch(`/api/places/search?q=${encodeURIComponent(query)}`);
+        const data = res.ok ? await res.json() : { results: [] };
+        setResults(data.results ?? []);
+      } catch {
+        setResults([]);
+      }
       setLoading(false);
     }, 300);
     return () => {
@@ -45,9 +51,24 @@ export function BusinessSearch({
     };
   }, [query]);
 
-  function handleSelect(business: BusinessSearchResult) {
+  async function handleSelect(business: BusinessSearchResult) {
     setNavigating(true);
-    // fase mock: o id do diagnóstico é o próprio placeId (determinístico)
+    try {
+      // cria o diagnóstico no banco e navega com o id real
+      const res = await fetch("/api/diagnostico", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ placeId: business.placeId }),
+      });
+      if (res.ok) {
+        const { id } = await res.json();
+        router.push(`/diagnostico/${id}/analise`);
+        return;
+      }
+    } catch {
+      // sem rede/banco: cai no modo demonstração abaixo
+    }
+    // modo demonstração (Supabase não configurado): id = placeId determinístico
     router.push(`/diagnostico/${business.placeId}/analise`);
   }
 

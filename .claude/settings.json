@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm install server-only)",
+      "PowerShell(npm install -D tsx dotenv)",
+      "PowerShell($routes = @\\(\"/\", \"/diagnostico\", \"/dashboard\", \"/avaliacoes\", \"/feedbacks\", \"/pagina-avaliacao\", \"/concorrentes\", \"/configuracoes\", \"/planos\", \"/login\", \"/cadastro\", \"/r/clinica-sorriso\", \"/diagnostico/clinica-sorriso-sumare/analise\"\\); foreach \\($r in $routes\\) { try { $resp = Invoke-WebRequest -Uri \"http://localhost:3000$r\" -UseBasicParsing -TimeoutSec 30; Write-Output \"$\\($resp.StatusCode\\) $r\" } catch { Write-Output \"ERR $r : $\\($_.Exception.Message\\)\" } })"
+    ]
+  }
+}

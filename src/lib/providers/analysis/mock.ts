@@ -53,14 +53,19 @@ export const mockAnalysisProvider: AnalysisProvider = {
     await new Promise((r) => setTimeout(r, 400 + Math.random() * 300));
 
     const mock = findBusinessByPlaceId(business.placeId);
+    // sem concorrentes encontrados (possível em modo live), gap = 0
     const avgCompetitorRating =
-      competitors.reduce((sum, c) => sum + c.rating, 0) / (competitors.length || 1);
+      competitors.length > 0
+        ? competitors.reduce((sum, c) => sum + c.rating, 0) / competitors.length
+        : business.rating;
     const ratingGap = Math.round((business.rating - avgCompetitorRating) * 10) / 10;
 
     const repliedCount = reviews.filter((r) => r.replied).length;
     const responseRatePct = Math.round((repliedCount / (reviews.length || 1)) * 100);
 
-    const reviewsPerMonth = mock?.reviewsPerMonth ?? 3;
+    // live: estimativa conservadora (perfis acumulam avaliações ao longo de ~2 anos)
+    const reviewsPerMonth =
+      mock?.reviewsPerMonth ?? Math.max(1, Math.round(business.reviewCount / 24));
     const expectedReviewsPerMonth = Math.max(8, Math.round(reviewsPerMonth * 2.5));
 
     const negativePct =

@@ -10,20 +10,32 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Stars } from "@/components/stars";
-import { getCompetitorsFor } from "@/lib/mock-data/businesses";
+import { findBusinessByPlaceId, getCompetitorsFor } from "@/lib/mock-data/businesses";
 import { getDemoBusiness } from "@/lib/mock-data/app-data";
+import { getCurrentBusiness } from "@/lib/data/business";
+import { getMetricSnapshotsForBusiness } from "@/lib/data/app-queries";
 
 export const metadata = { title: "Concorrentes" };
 
-export default function ConcorrentesPage() {
-  const business = getDemoBusiness();
-  const competitors = getCompetitorsFor(business);
+export default async function ConcorrentesPage() {
+  const business = await getCurrentBusiness();
+  const snapshots = await getMetricSnapshotsForBusiness(business);
+  const latest = snapshots[snapshots.length - 1];
+
+  // concorrentes ainda vêm do provider mock — a Places API substitui isso
+  const mockRef =
+    (business.googlePlaceId ? findBusinessByPlaceId(business.googlePlaceId) : undefined) ??
+    getDemoBusiness();
+  const competitors = getCompetitorsFor(mockRef);
+
+  const ownRating = latest?.rating ?? mockRef.rating;
+  const ownReviewCount = latest?.reviewCount ?? mockRef.reviewCount;
 
   const ranking = [
     {
       name: business.name,
-      rating: business.rating,
-      reviewCount: business.reviewCount,
+      rating: ownRating,
+      reviewCount: ownReviewCount,
       distanceKm: 0,
       isOwn: true,
     },
@@ -56,7 +68,7 @@ export default function ConcorrentesPage() {
             <p className="text-sm text-muted-foreground">
               {ownPosition === 1
                 ? "Você lidera a região — continue coletando avaliações pra manter a posição."
-                : `Faltam ${(ranking[0].rating - business.rating).toFixed(1)} ponto(s) de nota para alcançar o líder.`}
+                : `Faltam ${(ranking[0].rating - ownRating).toFixed(1)} ponto(s) de nota para alcançar o líder.`}
             </p>
           </div>
         </CardContent>
@@ -109,8 +121,8 @@ export default function ConcorrentesPage() {
       </Card>
 
       <p className="text-xs text-muted-foreground">
-        Dados atualizados diariamente a partir do Google Maps (modo demonstração:
-        dados simulados).
+        Dados dos concorrentes em modo demonstração — passam a vir do Google Maps
+        quando a busca ao vivo for ativada.
       </p>
     </div>
   );

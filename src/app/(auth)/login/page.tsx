@@ -1,24 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { GoogleIcon } from "@/components/google-icon";
+import { createClient } from "@/lib/supabase/client";
+
+const supabaseConfigured = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 const loginSchema = z.object({
   email: z.string().email("Digite um e-mail válido."),
   password: z.string().min(6, "A senha tem pelo menos 6 caracteres."),
 });
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // só caminhos internos — evita open redirect via ?redirect=https://site-malicioso
+  const rawRedirect = searchParams.get("redirect") ?? "/dashboard";
+  const redirectTo =
+    rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+      ? rawRedirect
+      : "/dashboard";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -37,9 +52,45 @@ export default function LoginPage() {
     }
     setErrors({});
     setSubmitting(true);
-    // fase mock: auth real (Supabase) entra na fase 2
-    await new Promise((r) => setTimeout(r, 600));
-    router.push("/dashboard");
+
+    if (!supabaseConfigured) {
+      // modo demonstração (sem .env.local): entra direto
+      await new Promise((r) => setTimeout(r, 600));
+      router.push("/dashboard");
+      return;
+    }
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: parsed.data.email,
+      password: parsed.data.password,
+    });
+    if (error) {
+      setSubmitting(false);
+      toast.error(
+        error.message === "Invalid login credentials"
+          ? "E-mail ou senha incorretos."
+          : "Não foi possível entrar. Tente novamente."
+      );
+      return;
+    }
+    router.push(redirectTo);
+    router.refresh();
+  }
+
+  async function handleGoogle() {
+    if (!supabaseConfigured) {
+      router.push("/dashboard");
+      return;
+    }
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=${redirectTo}` },
+    });
+    if (error) {
+      toast.error("Login com Google indisponível no momento. Use e-mail e senha.");
+    }
   }
 
   return (
@@ -52,7 +103,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <Button variant="outline" type="button" onClick={() => router.push("/dashboard")}>
+        <Button variant="outline" type="button" onClick={handleGoogle}>
           <GoogleIcon className="size-4" />
           Continuar com Google
         </Button>
@@ -111,5 +162,13 @@ export default function LoginPage() {
         </p>
       </CardContent>
     </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<Skeleton className="h-[480px] w-full max-w-sm rounded-xl" />}>
+      <LoginForm />
+    </Suspense>
   );
 }

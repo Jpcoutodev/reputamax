@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { AlertTriangle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,9 +18,17 @@ import { ScoreRing, scoreLabel } from "@/components/score-ring";
 import { useDiagnosis } from "@/components/diagnostico/use-diagnosis";
 
 export default function RelatorioPage() {
+  const router = useRouter();
   const params = useParams<{ diagnosticoId: string }>();
   const placeId = params.diagnosticoId;
-  const { business, result, loading, error } = useDiagnosis(placeId);
+  const { business, result, leadCaptured, loading, error } = useDiagnosis(placeId);
+
+  // relatório só após captura do lead — senão volta pro teaser
+  useEffect(() => {
+    if (!loading && !error && !leadCaptured) {
+      router.replace(`/diagnostico/${placeId}/teaser`);
+    }
+  }, [loading, error, leadCaptured, placeId, router]);
 
   if (error) {
     return (
@@ -30,7 +39,7 @@ export default function RelatorioPage() {
     );
   }
 
-  if (loading || !business || !result) {
+  if (loading || !business || !result || !leadCaptured) {
     return (
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-16">
         <Skeleton className="h-48 w-full rounded-xl" />

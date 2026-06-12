@@ -4,7 +4,8 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { z } from "zod";
-import { BadgeCheck, Loader2 } from "lucide-react";
+import { BadgeCheck, Loader2, MailCheck } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,11 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GoogleIcon } from "@/components/google-icon";
-import { findBusinessByPlaceId } from "@/lib/mock-data/businesses";
+import { createClient } from "@/lib/supabase/client";
+
+const supabaseConfigured = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 const cadastroSchema = z.object({
   name: z.string().min(2, "Digite seu nome."),
@@ -33,13 +38,32 @@ function CadastroForm() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
 
   useEffect(() => {
-    if (diagnosticoId) {
-      const business = findBusinessByPlaceId(diagnosticoId);
-      if (business) setBusinessName(business.name);
-    }
+    if (!diagnosticoId) return;
+    // busca o nome do negócio do diagnóstico para o banner
+    fetch(`/api/diagnostico/${diagnosticoId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.business?.name) setBusinessName(data.business.name);
+      })
+      .catch(() => {});
   }, [diagnosticoId]);
+
+  async function createBusinessAndEnter() {
+    const res = await fetch("/api/onboarding", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(diagnosticoId ? { diagnosticoId } : {}),
+    });
+    if (!res.ok) {
+      // conta criada mas business falhou — o layout da área logada recria
+      console.error("[cadastro] onboarding falhou:", res.status);
+    }
+    router.push("/dashboard");
+    router.refresh();
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -54,9 +78,72 @@ function CadastroForm() {
     }
     setErrors({});
     setSubmitting(true);
-    // fase mock: auth real (Supabase) e criação do business entram na fase 2
-    await new Promise((r) => setTimeout(r, 800));
-    router.push("/dashboard");
+
+    if (!supabaseConfigured) {
+      // modo demonstração (sem .env.local)
+      await new Promise((r) => setTimeout(r, 800));
+      router.push("/dashboard");
+      return;
+    }
+
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signUp({
+      email: parsed.data.email,
+      password: parsed.data.password,
+      options: { data: { full_name: parsed.data.name } },
+    });
+
+    if (error) {
+      setSubmitting(false);
+      toast.error(
+        error.message.includes("already registered")
+          ? "Este e-mail já tem conta. Faça login."
+          : "Não foi possível criar a conta. Tente novamente."
+      );
+      return;
+    }
+
+    if (data.session) {
+      // confirmação de e-mail desativada → já entra
+      await createBusinessAndEnter();
+    } else {
+      // confirmação de e-mail ativada no projeto Supabase
+      setSubmitting(false);
+      setAwaitingConfirmation(true);
+    }
+  }
+
+  async function handleGoogle() {
+    if (!supabaseConfigured) {
+      router.push("/dashboard");
+      return;
+    }
+    const supabase = createClient();
+    const next = diagnosticoId
+      ? `/dashboard?diagnostico=${diagnosticoId}`
+      : "/dashboard";
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=${next}` },
+    });
+    if (error) {
+      toast.error("Cadastro com Google indisponível no momento. Use e-mail e senha.");
+    }
+  }
+
+  if (awaitingConfirmation) {
+    return (
+      <Card className="w-full max-w-sm rounded-xl border shadow-none">
+        <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
+          <MailCheck className="size-10 text-success" />
+          <h1 className="text-xl font-medium tracking-tight">Confirme seu e-mail</h1>
+          <p className="text-sm text-muted-foreground">
+            Enviamos um link de confirmação para <strong>{email}</strong>. Clique
+            nele para ativar sua conta e entrar.
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -79,7 +166,7 @@ function CadastroForm() {
           </div>
         ) : null}
 
-        <Button variant="outline" type="button" onClick={() => router.push("/dashboard")}>
+        <Button variant="outline" type="button" onClick={handleGoogle}>
           <GoogleIcon className="size-4" />
           Continuar com Google
         </Button>
