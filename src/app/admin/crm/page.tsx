@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { FileText } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -13,17 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CrmFilters } from "@/components/admin/crm-filters";
-import { getCrmEntries, type CrmStage } from "@/lib/data/admin-queries";
+import { CrmStageSelect } from "@/components/admin/crm-stage-select";
+import { CRM_STAGES, getCrmEntries, type CrmStage } from "@/lib/data/admin-queries";
 
 export const metadata = { title: "CRM" };
-
-const stageBadges: Record<CrmStage, { label: string; className: string }> = {
-  diagnostico: { label: "Diagnóstico", className: "bg-surface text-muted-foreground" },
-  lead: { label: "Lead", className: "bg-warning-soft text-warning" },
-  cliente: { label: "Cliente", className: "bg-success-soft text-success" },
-};
-
-const VALID_STAGES: CrmStage[] = ["diagnostico", "lead", "cliente"];
 
 interface PageProps {
   searchParams: Promise<{ fase?: string; q?: string; page?: string }>;
@@ -31,7 +23,7 @@ interface PageProps {
 
 export default async function CrmPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const stage = VALID_STAGES.includes(params.fase as CrmStage)
+  const stage = CRM_STAGES.includes(params.fase as CrmStage)
     ? (params.fase as CrmStage)
     : undefined;
   const page = Math.max(1, Number(params.page) || 1);
@@ -57,8 +49,9 @@ export default async function CrmPage({ searchParams }: PageProps) {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-medium tracking-tight">CRM</h1>
         <p className="text-sm text-muted-foreground">
-          Todos os negócios que passaram pelo diagnóstico, com a fase de cada um
-          no funil. {total} registro{total === 1 ? "" : "s"}.
+          Todos os negócios que passaram pelo diagnóstico. Mude a fase pelo
+          dropdown e clique no nome para ver contato e relatório completo.{" "}
+          {total} registro{total === 1 ? "" : "s"}.
         </p>
       </div>
 
@@ -85,60 +78,66 @@ export default async function CrmPage({ searchParams }: PageProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {entries.map((entry) => {
-                  const badge = stageBadges[entry.stage];
-                  return (
-                    <TableRow key={entry.id}>
-                      <TableCell>
-                        <span className="block max-w-56 truncate font-medium">
-                          {entry.businessName}
+                {entries.map((entry) => (
+                  <TableRow key={entry.id}>
+                    <TableCell>
+                      <Link
+                        href={`/admin/crm/${entry.id}`}
+                        className="block max-w-56 truncate font-medium underline-offset-4 hover:text-primary hover:underline"
+                      >
+                        {entry.businessName}
+                      </Link>
+                      <span className="text-xs text-muted-foreground">
+                        {entry.rating > 0
+                          ? `${entry.rating.toFixed(1)}★ · ${entry.reviewCount} avaliações`
+                          : entry.category}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <CrmStageSelect id={entry.id} stage={entry.stage} />
+                    </TableCell>
+                    <TableCell className="tabular-nums">{entry.score ?? "—"}</TableCell>
+                    <TableCell>
+                      {entry.leadEmail || entry.leadWhatsapp ? (
+                        <span className="block max-w-48">
+                          {entry.leadEmail ? (
+                            <a
+                              href={`mailto:${entry.leadEmail}`}
+                              className="block truncate text-sm underline-offset-4 hover:text-primary hover:underline"
+                            >
+                              {entry.leadEmail}
+                            </a>
+                          ) : null}
+                          {entry.leadWhatsapp ? (
+                            <a
+                              href={`https://wa.me/55${entry.leadWhatsapp.replace(/\D/g, "")}`}
+                              target="_blank"
+                              rel="noopener"
+                              className="text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+                            >
+                              {entry.leadWhatsapp}
+                            </a>
+                          ) : null}
                         </span>
-                        <span className="text-xs text-muted-foreground">
-                          {entry.rating > 0
-                            ? `${entry.rating.toFixed(1)}★ · ${entry.reviewCount} avaliações`
-                            : entry.category}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className={badge.className}>
-                          {badge.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="tabular-nums">
-                        {entry.score ?? "—"}
-                      </TableCell>
-                      <TableCell>
-                        {entry.leadEmail ? (
-                          <span className="block max-w-48">
-                            <span className="block truncate text-sm">{entry.leadEmail}</span>
-                            {entry.leadWhatsapp ? (
-                              <span className="text-xs text-muted-foreground">
-                                {entry.leadWhatsapp}
-                              </span>
-                            ) : null}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
-                        {new Date(entry.createdAt).toLocaleDateString("pt-BR")}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          render={
-                            <Link href={`/admin/crm/${entry.id}`} target="_blank" />
-                          }
-                        >
-                          <FileText className="size-3.5" />
-                          Ver / PDF
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                      {new Date(entry.createdAt).toLocaleDateString("pt-BR")}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        render={<Link href={`/admin/crm/${entry.id}`} />}
+                      >
+                        <FileText className="size-3.5" />
+                        Ver / PDF
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           )}

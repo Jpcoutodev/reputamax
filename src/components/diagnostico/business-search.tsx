@@ -14,12 +14,15 @@ interface BusinessSearchProps {
   variant?: "inline" | "overlay";
   autoFocus?: boolean;
   className?: string;
+  /** sobrescreve o fluxo padrão ao selecionar (usado pelo admin) */
+  onSelect?: (business: BusinessSearchResult) => void | Promise<void>;
 }
 
 export function BusinessSearch({
   variant = "inline",
   autoFocus = false,
   className,
+  onSelect,
 }: BusinessSearchProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -54,6 +57,12 @@ export function BusinessSearch({
 
   async function handleSelect(business: BusinessSearchResult) {
     setNavigating(true);
+    if (onSelect) {
+      // fluxo customizado (admin): quem chamou decide o que fazer
+      await onSelect(business);
+      setNavigating(false);
+      return;
+    }
     track("diagnostico_negocio_selecionado", { name: business.name });
     try {
       // cria o diagnóstico no banco e navega com o id real

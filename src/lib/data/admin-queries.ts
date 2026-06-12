@@ -138,7 +138,36 @@ export async function getLandingMetrics(): Promise<LandingMetrics> {
 
 /* ---------- CRM ---------- */
 
-export type CrmStage = "diagnostico" | "lead" | "cliente";
+export type CrmStage =
+  | "diagnostico"
+  | "lead"
+  | "contatado"
+  | "negociacao"
+  | "cliente"
+  | "perdido";
+
+export const CRM_STAGES: CrmStage[] = [
+  "diagnostico",
+  "lead",
+  "contatado",
+  "negociacao",
+  "cliente",
+  "perdido",
+];
+
+/** Fase efetiva: a manual (crm_stage) vence; senão deriva dos dados. */
+function effectiveStage(row: {
+  crm_stage: string | null;
+  lead_email: string | null;
+  converted_business_id: string | null;
+}): CrmStage {
+  if (row.crm_stage && CRM_STAGES.includes(row.crm_stage as CrmStage)) {
+    return row.crm_stage as CrmStage;
+  }
+  if (row.converted_business_id) return "cliente";
+  if (row.lead_email) return "lead";
+  return "diagnostico";
+}
 
 export interface CrmEntry {
   id: string;
@@ -170,17 +199,23 @@ export async function getCrmEntries(
   let query = admin
     .from("diagnostics")
     .select(
-      "id, business_name, business_snapshot, result, lead_email, lead_whatsapp, converted_business_id, created_at",
+      "id, business_name, business_snapshot, result, lead_email, lead_whatsapp, converted_business_id, crm_stage, created_at",
       { count: "exact" }
     )
     .order("created_at", { ascending: false });
 
-  if (filters.stage === "cliente") {
-    query = query.not("converted_business_id", "is", null);
-  } else if (filters.stage === "lead") {
-    query = query.not("lead_email", "is", null).is("converted_business_id", null);
-  } else if (filters.stage === "diagnostico") {
-    query = query.is("lead_email", null).is("converted_business_id", null);
+  if (filters.stage) {
+    // fase manual OU (sem fase manual + condição derivada equivalente)
+    const derivedCondition: Partial<Record<CrmStage, string>> = {
+      diagnostico:
+        "and(crm_stage.is.null,lead_email.is.null,converted_business_id.is.null)",
+      lead: "and(crm_stage.is.null,lead_email.not.is.null,converted_business_id.is.null)",
+      cliente: "and(crm_stage.is.null,converted_business_id.not.is.null)",
+    };
+    const parts = [`crm_stage.eq.${filters.stage}`];
+    const derived = derivedCondition[filters.stage];
+    if (derived) parts.push(derived);
+    query = query.or(parts.join(","));
   }
   if (filters.search) {
     const term = filters.search.replaceAll("%", "").replaceAll(",", "").trim();
@@ -204,7 +239,7 @@ export async function getCrmEntries(
       score: result?.score ?? null,
       leadEmail: d.lead_email,
       leadWhatsapp: d.lead_whatsapp,
-      stage: d.converted_business_id ? "cliente" : d.lead_email ? "lead" : "diagnostico",
+      stage: effectiveStage(d),
       createdAt: d.created_at,
     };
   });
@@ -227,7 +262,7 @@ export async function getCrmDiagnostic(id: string): Promise<CrmDiagnosticDetail 
   const { data } = await admin
     .from("diagnostics")
     .select(
-      "id, business_snapshot, result, lead_email, lead_whatsapp, converted_business_id, created_at"
+      "id, business_snapshot, result, lead_email, lead_whatsapp, converted_business_id, crm_stage, created_at"
     )
     .eq("id", id)
     .maybeSingle();
@@ -239,7 +274,7 @@ export async function getCrmDiagnostic(id: string): Promise<CrmDiagnosticDetail 
     result: data.result as DiagnosisResult | null,
     leadEmail: data.lead_email,
     leadWhatsapp: data.lead_whatsapp,
-    stage: data.converted_business_id ? "cliente" : data.lead_email ? "lead" : "diagnostico",
+    stage: effectiveStage(data),
     createdAt: data.created_at,
   };
 }

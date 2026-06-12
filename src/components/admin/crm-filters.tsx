@@ -47,9 +47,12 @@ export function CrmFilters() {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="todos">Todas as fases</SelectItem>
-          <SelectItem value="diagnostico">Diagnóstico (sem lead)</SelectItem>
-          <SelectItem value="lead">Lead capturado</SelectItem>
-          <SelectItem value="cliente">Cliente (converteu)</SelectItem>
+          <SelectItem value="diagnostico">Diagnóstico</SelectItem>
+          <SelectItem value="lead">Lead</SelectItem>
+          <SelectItem value="contatado">Contatado</SelectItem>
+          <SelectItem value="negociacao">Em negociação</SelectItem>
+          <SelectItem value="cliente">Cliente</SelectItem>
+          <SelectItem value="perdido">Perdido</SelectItem>
         </SelectContent>
       </Select>
     </div>

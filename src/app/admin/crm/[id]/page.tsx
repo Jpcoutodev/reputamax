@@ -14,11 +14,14 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-const stageLabels = {
-  diagnostico: "Diagnóstico (sem lead)",
+const stageLabels: Record<string, string> = {
+  diagnostico: "Diagnóstico",
   lead: "Lead capturado",
+  contatado: "Contatado",
+  negociacao: "Em negociação",
   cliente: "Cliente",
-} as const;
+  perdido: "Perdido",
+};
 
 export default async function CrmDiagnosticPage({ params }: PageProps) {
   const { id } = await params;

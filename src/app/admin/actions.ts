@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getAdminUser } from "@/lib/data/admin";
 import { deleteSetting, setSetting } from "@/lib/data/settings";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type ActionResult = { ok: boolean; error?: string };
 
@@ -44,5 +45,27 @@ export async function updatePrompt(key: string, value: string): Promise<ActionRe
     await deleteSetting(parsedKey.data);
   }
   revalidatePath("/admin/configuracoes");
+  return { ok: true };
+}
+
+const crmStageSchema = z.object({
+  id: z.string().uuid(),
+  stage: z.enum(["diagnostico", "lead", "contatado", "negociacao", "cliente", "perdido"]),
+});
+
+/** Define manualmente a fase de um registro do CRM. */
+export async function updateCrmStage(id: string, stage: string): Promise<ActionResult> {
+  if (!(await ensureAdmin())) return { ok: false, error: "sem_permissao" };
+  const parsed = crmStageSchema.safeParse({ id, stage });
+  if (!parsed.success) return { ok: false, error: "payload_invalido" };
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("diagnostics")
+    .update({ crm_stage: parsed.data.stage })
+    .eq("id", parsed.data.id);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/admin/crm");
   return { ok: true };
 }

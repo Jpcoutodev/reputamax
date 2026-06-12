@@ -2,11 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Globe, LayoutDashboard, Settings, Users } from "lucide-react";
+import {
+  BarChart3,
+  FileSearch,
+  Globe,
+  LayoutDashboard,
+  Settings,
+  Users,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/admin/diagnostico", label: "Gerar diagnóstico", icon: FileSearch, exact: false },
   { href: "/admin/crm", label: "CRM", icon: Users, exact: false },
   { href: "/admin/landing", label: "Landing page", icon: Globe, exact: false },
   { href: "/admin/configuracoes", label: "Configurações", icon: Settings, exact: false },
