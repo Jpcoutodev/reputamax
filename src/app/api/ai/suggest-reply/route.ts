@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { analysisProvider } from "@/lib/providers";
+import { getAnalysisProvider } from "@/lib/data/ai";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { getCurrentBusiness } from "@/lib/data/business";
@@ -36,6 +36,7 @@ export async function POST(request: Request) {
   }
 
   const business = await getCurrentBusiness();
+  const analysisProvider = await getAnalysisProvider();
   const reply = await analysisProvider.suggestReply(
     {
       id: "suggest",

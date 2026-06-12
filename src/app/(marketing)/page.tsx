@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/accordion";
 import { ScoreRing } from "@/components/score-ring";
 import { BusinessSearch } from "@/components/diagnostico/business-search";
+import { TrackView } from "@/components/analytics/track";
 
 const problems = [
   {
@@ -260,6 +261,7 @@ function HeroMockup() {
 export default function LandingPage() {
   return (
     <>
+      <TrackView event="landing_view" />
       {/* Hero — busca centralizada, primeira coisa que a pessoa lê */}
       <section className="border-b bg-surface">
         <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-8 px-4 py-20 md:py-24">

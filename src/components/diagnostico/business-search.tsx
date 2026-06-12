@@ -6,6 +6,7 @@ import { Loader2, MapPin, Search, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { BusinessSearchResult } from "@/lib/providers/types";
+import { track } from "@/components/analytics/track";
 
 interface BusinessSearchProps {
   /** "inline": resultados empurram o conteúdo (página /diagnostico).
@@ -53,6 +54,7 @@ export function BusinessSearch({
 
   async function handleSelect(business: BusinessSearchResult) {
     setNavigating(true);
+    track("diagnostico_negocio_selecionado", { name: business.name });
     try {
       // cria o diagnóstico no banco e navega com o id real
       const res = await fetch("/api/diagnostico", {

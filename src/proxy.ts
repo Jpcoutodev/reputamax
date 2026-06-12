@@ -9,6 +9,7 @@ const PROTECTED_PREFIXES = [
   "/concorrentes",
   "/configuracoes",
   "/planos",
+  "/admin",
 ];
 
 export default async function proxy(request: NextRequest) {

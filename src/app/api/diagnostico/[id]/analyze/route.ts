@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { supabaseAdminConfigured } from "@/lib/supabase/config";
-import { analysisProvider, reviewProvider } from "@/lib/providers";
+import { reviewProvider } from "@/lib/providers";
 import type { BusinessSearchResult } from "@/lib/providers";
+import { getAnalysisProvider } from "@/lib/data/ai";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -36,9 +37,10 @@ export async function POST(_request: Request, context: RouteContext) {
   }
 
   const business = diagnostic.business_snapshot as BusinessSearchResult;
-  const [reviews, competitors] = await Promise.all([
+  const [reviews, competitors, analysisProvider] = await Promise.all([
     reviewProvider.getReviews(diagnostic.place_id),
     reviewProvider.getCompetitors(diagnostic.place_id),
+    getAnalysisProvider(), // provider e prompts configurados no painel admin
   ]);
   const result = await analysisProvider.analyzeReviews(business, reviews, competitors);
 
