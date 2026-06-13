@@ -28,6 +28,12 @@ export default function MarketingLayout({
           <div className="flex flex-col gap-1">
             <Logo className="text-base" />
             <p>Gestão ativa de reputação para negócios locais brasileiros.</p>
+            <a
+              href="mailto:contato@reputamax.app"
+              className="underline-offset-4 hover:text-foreground hover:underline"
+            >
+              contato@reputamax.app
+            </a>
           </div>
           <div className="flex flex-col gap-1 sm:items-end">
             <div className="flex gap-4">
