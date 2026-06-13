@@ -1,11 +1,12 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { AlertTriangle, Mail, Phone } from "lucide-react";
+import { AlertTriangle, Download, Mail, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MetricCard } from "@/components/metric-card";
 import { ScoreRing, scoreLabel } from "@/components/score-ring";
-import { PrintButton } from "@/components/admin/print-button";
 import { getCrmDiagnostic } from "@/lib/data/admin-queries";
 
 export const metadata = { title: "Relatório de diagnóstico" };
@@ -34,9 +35,8 @@ export default async function CrmDiagnosticPage({ params }: PageProps) {
   const gap = result?.ratingGapVsCompetitors ?? 0;
 
   return (
-    <div className="flex flex-col gap-8 print:gap-6">
-      {/* barra de ações — some na impressão */}
-      <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
+    <div className="flex flex-col gap-8">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-medium tracking-tight">{business.name}</h1>
           <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
@@ -63,16 +63,12 @@ export default async function CrmDiagnosticPage({ params }: PageProps) {
             ) : null}
           </div>
         </div>
-        <PrintButton />
-      </div>
-
-      {/* cabeçalho da versão impressa */}
-      <div className="hidden print:block">
-        <p className="text-sm text-muted-foreground">
-          Reputamax — Relatório de reputação ·{" "}
-          {new Date(diagnostic.createdAt).toLocaleDateString("pt-BR")}
-        </p>
-        <h1 className="text-2xl font-medium">{business.name}</h1>
+        {result ? (
+          <Button render={<Link href={`/admin/crm/${diagnostic.id}/pdf`} prefetch={false} />}>
+            <Download className="size-4" />
+            Baixar PDF
+          </Button>
+        ) : null}
       </div>
 
       {!result ? (
@@ -93,7 +89,7 @@ export default async function CrmDiagnosticPage({ params }: PageProps) {
           </section>
 
           {/* métricas */}
-          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 print:grid-cols-4">
+          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <MetricCard
               label="Nota no Google"
               value={business.rating.toFixed(1)}
