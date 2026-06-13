@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
-import { findBusinessBySlug } from "@/lib/mock-data/businesses";
+import { getPublicBusiness } from "@/lib/data/public-business";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const metadata = { robots: { index: false } };
+
 export default async function ObrigadoPage({ params }: PageProps) {
   const { slug } = await params;
-  const business = findBusinessBySlug(slug);
+  const business = await getPublicBusiness(slug);
   if (!business) notFound();
 
   return (
