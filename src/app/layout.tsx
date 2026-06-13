@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Outfit } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { siteConfig, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({
@@ -14,12 +15,54 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Reputamax — Sua reputação no Google trabalhando por você",
+    default: siteConfig.title,
     template: "%s | Reputamax",
   },
-  description:
-    "Transforme avaliações do Google em uma máquina de atrair clientes. Diagnóstico gratuito, página de avaliação inteligente e dashboard de reputação.",
+  description: siteConfig.description,
+  applicationName: siteConfig.name,
+  keywords: [...siteConfig.keywords],
+  authors: [{ name: siteConfig.name, url: SITE_URL }],
+  creator: siteConfig.name,
+  publisher: siteConfig.name,
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: siteConfig.locale,
+    url: SITE_URL,
+    siteName: siteConfig.name,
+    title: siteConfig.title,
+    description: siteConfig.ogDescription,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.title,
+    description: siteConfig.ogDescription,
+    creator: siteConfig.twitter,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  category: "business",
+  // Verificação do Google Search Console — preencha quando tiver o código:
+  // verification: { google: "..." },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#4F46E5",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

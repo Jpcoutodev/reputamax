@@ -4,7 +4,10 @@ import { AdminNav } from "@/components/admin/admin-nav";
 import { LogoutButton } from "@/components/app-shell/logout-button";
 import { requireAdmin } from "@/lib/data/admin";
 
-export const metadata = { title: { default: "Admin", template: "%s | Reputamax Admin" } };
+export const metadata = {
+  title: { default: "Admin", template: "%s | Reputamax Admin" },
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();

@@ -5,6 +5,10 @@ import { BottomNav, SidebarNav } from "@/components/app-shell/nav";
 import { LogoutButton } from "@/components/app-shell/logout-button";
 import { getCurrentBusiness, trialDaysLeft } from "@/lib/data/business";
 
+export const metadata = {
+  robots: { index: false, follow: false },
+};
+
 const planLabels: Record<string, string> = {
   trial: "Trial gratuito",
   essencial: "Plano Essencial",

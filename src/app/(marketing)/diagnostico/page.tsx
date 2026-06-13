@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import { BusinessSearch } from "@/components/diagnostico/business-search";
 import { TrackView } from "@/components/analytics/track";
 
-export const metadata = { title: "Diagnóstico gratuito" };
+export const metadata: Metadata = {
+  title: "Diagnóstico gratuito da sua reputação no Google",
+  description:
+    "Descubra em 30 segundos como está a reputação do seu negócio no Google: sua nota, comparação com concorrentes e um plano de ação. Grátis, sem cadastro.",
+  alternates: { canonical: "/diagnostico" },
+};
 
 export default function DiagnosticoPage() {
   return (

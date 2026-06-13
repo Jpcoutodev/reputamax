@@ -25,9 +25,20 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import type { Metadata } from "next";
 import { ScoreRing } from "@/components/score-ring";
 import { BusinessSearch } from "@/components/diagnostico/business-search";
 import { TrackView } from "@/components/analytics/track";
+import { JsonLd } from "@/components/seo/json-ld";
+import { faqs } from "@/lib/landing-content";
+import { landingSchemas } from "@/lib/structured-data";
+import { siteConfig } from "@/lib/site";
+
+export const metadata: Metadata = {
+  title: "Reputamax — Gestão ativa de reputação no Google para negócios locais",
+  description: siteConfig.description,
+  alternates: { canonical: "/" },
+};
 import { AnimateOnScroll } from "@/components/landing/animate-on-scroll";
 import { CountUp } from "@/components/landing/count-up";
 
@@ -127,34 +138,6 @@ const audiences = [
   { icon: ScissorsLineDashed, label: "Salões e estética" },
   { icon: Hotel, label: "Hotéis e pousadas" },
   { icon: Wrench, label: "Oficinas e serviços" },
-];
-
-const faqs = [
-  {
-    question: "Preciso de conhecimento técnico?",
-    answer:
-      "Nenhum. Você busca seu negócio, recebe o diagnóstico e o Reputamax faz o resto: página de avaliação pronta, QR code pra imprimir e respostas sugeridas pela IA. Se você usa WhatsApp, sabe usar o Reputamax.",
-  },
-  {
-    question: "O diagnóstico é realmente grátis?",
-    answer:
-      "Sim, e sem pegadinha: não pedimos cartão de crédito nem criação de conta para ver o relatório completo. O diagnóstico é nossa forma de mostrar o valor do produto antes de você decidir.",
-  },
-  {
-    question: "Funciona para qualquer tipo de negócio?",
-    answer:
-      "Funciona para qualquer negócio local com perfil no Google: restaurantes, clínicas, salões, academias, oficinas, pet shops, hotéis e muito mais. Se seus clientes te procuram no Google, o Reputamax é pra você.",
-  },
-  {
-    question: "Como o sistema faz minha nota subir?",
-    answer:
-      "Com dois movimentos: primeiro, sua página de avaliação inteligente direciona clientes satisfeitos para o Google e intercepta críticas em privado — assim os elogios viram estrelas públicas e os problemas chegam só pra você resolver. Segundo, a IA te ajuda a responder 100% das avaliações, o que melhora sua imagem e seu posicionamento na busca local.",
-  },
-  {
-    question: "É seguro conectar minha conta Google?",
-    answer:
-      "Sim. Usamos a conexão oficial do Google (OAuth), a mesma tecnologia de \"Entrar com Google\" que você já usa em outros apps. Não temos acesso à sua senha e você pode revogar a permissão a qualquer momento direto na sua conta Google.",
-  },
 ];
 
 /** Sparkline simples do mockup do hero — sem lib de gráfico pra manter a landing leve */
@@ -265,6 +248,7 @@ function HeroMockup() {
 export default function LandingPage() {
   return (
     <>
+      <JsonLd data={landingSchemas()} />
       <TrackView event="landing_view" />
 
       {/* ─── Hero ─── */}
