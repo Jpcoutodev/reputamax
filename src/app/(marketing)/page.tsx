@@ -689,15 +689,15 @@ export default function LandingPage() {
               >
                 Quero melhorar minha nota
               </Button>
-              <ul className="flex flex-wrap items-center justify-center gap-3">
-                <li className="flex items-center gap-1.5 rounded-full bg-success px-4 py-1.5 text-sm font-bold text-white shadow-lg shadow-success/25 ring-1 ring-white/20 transition-transform hover:scale-105 cursor-default">
-                  <Check className="size-4" strokeWidth={3} /> Grátis
+              <ul className="flex flex-wrap items-center justify-center gap-4 text-sm font-medium text-white/80 mt-2">
+                <li className="flex items-center gap-1.5">
+                  <Check className="size-4 text-success" /> Grátis
                 </li>
-                <li className="flex items-center gap-1.5 rounded-full bg-success px-4 py-1.5 text-sm font-bold text-white shadow-lg shadow-success/25 ring-1 ring-white/20 transition-transform hover:scale-105 cursor-default">
-                  <Check className="size-4" strokeWidth={3} /> Resultado em 30 segundos
+                <li className="flex items-center gap-1.5">
+                  <Check className="size-4 text-success" /> Resultado em 30 segundos
                 </li>
-                <li className="flex items-center gap-1.5 rounded-full bg-success px-4 py-1.5 text-sm font-bold text-white shadow-lg shadow-success/25 ring-1 ring-white/20 transition-transform hover:scale-105 cursor-default">
-                  <Check className="size-4" strokeWidth={3} /> Sem cartão
+                <li className="flex items-center gap-1.5">
+                  <Check className="size-4 text-success" /> Sem cartão
                 </li>
               </ul>
             </div>
