@@ -157,7 +157,7 @@ export const CRM_STAGES: CrmStage[] = [
 
 /** Fase efetiva: a manual (crm_stage) vence; senão deriva dos dados. */
 function effectiveStage(row: {
-  crm_stage: string | null;
+  crm_stage?: string | null;
   lead_email: string | null;
   converted_business_id: string | null;
 }): CrmStage {
@@ -167,6 +167,19 @@ function effectiveStage(row: {
   if (row.converted_business_id) return "cliente";
   if (row.lead_email) return "lead";
   return "diagnostico";
+}
+
+/**
+ * A coluna crm_stage só existe após a migration 0004. Detecta uma vez por
+ * processo para o CRM funcionar antes e depois da migration (degrada sem fase manual).
+ */
+let crmStageColumnCache: boolean | null = null;
+async function hasCrmStageColumn(): Promise<boolean> {
+  if (crmStageColumnCache !== null) return crmStageColumnCache;
+  const admin = createAdminClient();
+  const { error } = await admin.from("diagnostics").select("crm_stage").limit(1);
+  crmStageColumnCache = !error;
+  return crmStageColumnCache;
 }
 
 export interface CrmEntry {
@@ -190,32 +203,57 @@ export interface CrmFilters {
 
 const CRM_PAGE_SIZE = 25;
 
+interface DiagnosticRow {
+  id: string;
+  business_name: string;
+  business_snapshot: BusinessSearchResult | null;
+  result: DiagnosisResult | null;
+  lead_email: string | null;
+  lead_whatsapp: string | null;
+  converted_business_id: string | null;
+  crm_stage?: string | null;
+  created_at: string;
+}
+
 export async function getCrmEntries(
   filters: CrmFilters
 ): Promise<{ entries: CrmEntry[]; total: number; pageSize: number }> {
   const admin = createAdminClient();
   const page = Math.max(1, filters.page ?? 1);
+  const hasStage = await hasCrmStageColumn();
+
+  const columns = hasStage
+    ? "id, business_name, business_snapshot, result, lead_email, lead_whatsapp, converted_business_id, crm_stage, created_at"
+    : "id, business_name, business_snapshot, result, lead_email, lead_whatsapp, converted_business_id, created_at";
 
   let query = admin
     .from("diagnostics")
-    .select(
-      "id, business_name, business_snapshot, result, lead_email, lead_whatsapp, converted_business_id, crm_stage, created_at",
-      { count: "exact" }
-    )
+    .select(columns, { count: "exact" })
     .order("created_at", { ascending: false });
 
   if (filters.stage) {
-    // fase manual OU (sem fase manual + condição derivada equivalente)
-    const derivedCondition: Partial<Record<CrmStage, string>> = {
-      diagnostico:
-        "and(crm_stage.is.null,lead_email.is.null,converted_business_id.is.null)",
-      lead: "and(crm_stage.is.null,lead_email.not.is.null,converted_business_id.is.null)",
-      cliente: "and(crm_stage.is.null,converted_business_id.not.is.null)",
-    };
-    const parts = [`crm_stage.eq.${filters.stage}`];
-    const derived = derivedCondition[filters.stage];
-    if (derived) parts.push(derived);
-    query = query.or(parts.join(","));
+    if (hasStage) {
+      // fase manual OU (sem fase manual + condição derivada equivalente)
+      const derivedCondition: Partial<Record<CrmStage, string>> = {
+        diagnostico:
+          "and(crm_stage.is.null,lead_email.is.null,converted_business_id.is.null)",
+        lead: "and(crm_stage.is.null,lead_email.not.is.null,converted_business_id.is.null)",
+        cliente: "and(crm_stage.is.null,converted_business_id.not.is.null)",
+      };
+      const parts = [`crm_stage.eq.${filters.stage}`];
+      const derived = derivedCondition[filters.stage];
+      if (derived) parts.push(derived);
+      query = query.or(parts.join(","));
+    } else {
+      // sem a coluna: só as fases derivadas dos dados
+      if (filters.stage === "cliente") {
+        query = query.not("converted_business_id", "is", null);
+      } else if (filters.stage === "lead") {
+        query = query.not("lead_email", "is", null).is("converted_business_id", null);
+      } else if (filters.stage === "diagnostico") {
+        query = query.is("lead_email", null).is("converted_business_id", null);
+      }
+    }
   }
   if (filters.search) {
     const term = filters.search.replaceAll("%", "").replaceAll(",", "").trim();
@@ -225,9 +263,11 @@ export async function getCrmEntries(
   }
 
   const from = (page - 1) * CRM_PAGE_SIZE;
-  const { data, count } = await query.range(from, from + CRM_PAGE_SIZE - 1);
+  const { data: rawData, count } = await query.range(from, from + CRM_PAGE_SIZE - 1);
+  // select dinâmico perde a inferência do Supabase — tipamos manualmente
+  const data = (rawData ?? []) as unknown as DiagnosticRow[];
 
-  const entries: CrmEntry[] = (data ?? []).map((d) => {
+  const entries: CrmEntry[] = data.map((d) => {
     const snapshot = d.business_snapshot as BusinessSearchResult | null;
     const result = d.result as DiagnosisResult | null;
     return {
@@ -259,19 +299,23 @@ export interface CrmDiagnosticDetail {
 
 export async function getCrmDiagnostic(id: string): Promise<CrmDiagnosticDetail | null> {
   const admin = createAdminClient();
-  const { data } = await admin
+  const hasStage = await hasCrmStageColumn();
+  const columns = hasStage
+    ? "id, business_snapshot, result, lead_email, lead_whatsapp, converted_business_id, crm_stage, created_at"
+    : "id, business_snapshot, result, lead_email, lead_whatsapp, converted_business_id, created_at";
+
+  const { data: rawData } = await admin
     .from("diagnostics")
-    .select(
-      "id, business_snapshot, result, lead_email, lead_whatsapp, converted_business_id, crm_stage, created_at"
-    )
+    .select(columns)
     .eq("id", id)
     .maybeSingle();
-  if (!data) return null;
+  if (!rawData) return null;
+  const data = rawData as unknown as DiagnosticRow;
 
   return {
     id: data.id,
     business: data.business_snapshot as BusinessSearchResult,
-    result: data.result as DiagnosisResult | null,
+    result: data.result,
     leadEmail: data.lead_email,
     leadWhatsapp: data.lead_whatsapp,
     stage: effectiveStage(data),
