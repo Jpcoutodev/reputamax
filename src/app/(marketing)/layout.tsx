@@ -31,10 +31,16 @@ export default function MarketingLayout({
           </div>
           <div className="flex flex-col gap-1 sm:items-end">
             <div className="flex gap-4">
-              <Link href="#" className="underline-offset-4 hover:text-foreground hover:underline">
+              <Link
+                href="/privacidade"
+                className="underline-offset-4 hover:text-foreground hover:underline"
+              >
                 Política de Privacidade
               </Link>
-              <Link href="#" className="underline-offset-4 hover:text-foreground hover:underline">
+              <Link
+                href="/termos"
+                className="underline-offset-4 hover:text-foreground hover:underline"
+              >
                 Termos de Uso
               </Link>
             </div>
