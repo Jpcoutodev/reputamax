@@ -17,7 +17,7 @@ export function Logo({ href = "/", className, dark = false, landscape = false }:
         <img
           src="/logo-landscape.png"
           alt="Reputamax"
-          className={cn("h-16 w-auto object-contain scale-[2.5] origin-left", dark && "brightness-0 invert")}
+          className={cn("h-9 w-auto object-contain sm:h-10", dark && "brightness-0 invert")}
         />
       ) : (
         <img

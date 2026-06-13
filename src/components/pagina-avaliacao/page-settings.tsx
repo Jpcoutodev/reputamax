@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ReviewFunnel } from "@/components/review-funnel/funnel";
+import { LogoCropper } from "@/components/pagina-avaliacao/logo-cropper";
 import { updatePageSettings } from "@/app/(app)/actions";
 
 interface PageSettingsProps {
@@ -33,6 +34,7 @@ export function PageSettings({
   const [reviewLink, setReviewLink] = useState(initialReviewLink);
   const [logoUrl, setLogoUrl] = useState<string | null>(initialLogoUrl);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
@@ -70,7 +72,7 @@ export function PageSettings({
     );
   }
 
-  async function handleLogoSelected(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleLogoSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = ""; // permite reenviar o mesmo arquivo
     if (!file) return;
@@ -84,10 +86,17 @@ export function PageSettings({
       return;
     }
 
+    // abre o recorte quadrado antes de enviar
+    const reader = new FileReader();
+    reader.onload = () => setCropSrc(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  async function handleCroppedUpload(blob: Blob) {
     setUploadingLogo(true);
     try {
       const body = new FormData();
-      body.append("file", file);
+      body.append("file", new File([blob], "logo.png", { type: "image/png" }));
       const res = await fetch("/api/upload-logo", { method: "POST", body });
       const data = await res.json();
       if (!res.ok) {
@@ -95,6 +104,7 @@ export function PageSettings({
         return;
       }
       setLogoUrl(data.url);
+      setCropSrc(null);
       toast.success("Logo enviada! Já aparece na sua página de avaliação.");
     } catch {
       toast.error("Falha no upload. Verifique sua conexão e tente de novo.");
@@ -170,6 +180,13 @@ export function PageSettings({
   );
 
   return (
+    <>
+    <LogoCropper
+      src={cropSrc}
+      saving={uploadingLogo}
+      onCancel={() => setCropSrc(null)}
+      onCropped={handleCroppedUpload}
+    />
     <div className="grid items-start gap-6 lg:grid-cols-2">
       {/* Configuração */}
       <div className="flex flex-col gap-6">
@@ -187,16 +204,16 @@ export function PageSettings({
                 onChange={handleLogoSelected}
               />
               <div className="flex items-center gap-3">
-                <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-surface">
+                <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-surface">
                   {logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={logoUrl}
                       alt="Logo do negócio"
-                      className="size-full object-contain p-1.5"
+                      className="size-full object-cover"
                     />
                   ) : (
-                    <span className="text-xl font-medium text-muted-foreground">
+                    <span className="text-2xl font-medium text-muted-foreground">
                       {businessName.charAt(0)}
                     </span>
                   )}
@@ -230,7 +247,7 @@ export function PageSettings({
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                PNG, JPG, WEBP ou SVG, até 2 MB. Redimensionamos automaticamente.
+                PNG, JPG, WEBP ou SVG, até 2 MB. Você recorta no formato quadrado ao enviar.
               </p>
             </div>
 
@@ -336,5 +353,6 @@ export function PageSettings({
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }

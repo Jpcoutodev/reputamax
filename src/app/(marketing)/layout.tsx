@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
+import { MarketingMobileMenu } from "@/components/marketing/mobile-menu";
 
 export default function MarketingLayout({
   children,
@@ -12,18 +13,19 @@ export default function MarketingLayout({
       <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-[1100px] items-center justify-between px-4">
           <Logo landscape />
-          <nav className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              className="hidden sm:inline-flex"
-              render={<Link href="/login" />}
-            >
+          {/* desktop: botões inline */}
+          <nav className="hidden items-center gap-2 sm:flex">
+            <Button variant="ghost" render={<Link href="/login" />}>
               Entrar
             </Button>
             <Button render={<Link href="/diagnostico" />}>
               Diagnóstico grátis
             </Button>
           </nav>
+          {/* mobile: menu sanduíche */}
+          <div className="sm:hidden">
+            <MarketingMobileMenu />
+          </div>
         </div>
       </header>
       <main className="flex-1">{children}</main>

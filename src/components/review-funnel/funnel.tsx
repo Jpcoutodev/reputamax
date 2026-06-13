@@ -82,7 +82,7 @@ export function ReviewFunnel({
           <img
             src={logoUrl}
             alt={businessName}
-            className="h-20 w-auto max-w-[220px] object-contain"
+            className="size-28 rounded-2xl object-cover shadow-sm"
           />
         ) : (
           <span className="flex size-16 items-center justify-center rounded-2xl bg-primary text-2xl font-medium text-primary-foreground">
