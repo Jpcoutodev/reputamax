@@ -117,15 +117,15 @@ export function BusinessSearch({
 
   return (
     <div className={cn("relative w-full", className)}>
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+      <div className="relative group">
+        <Search className="absolute left-5 top-1/2 size-6 -translate-y-1/2 text-primary/60 transition-colors group-focus-within:text-primary" />
         <Input
           autoFocus={autoFocus}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Digite o nome do seu negócio…"
+          placeholder="Busque pelo nome do seu negócio..."
           aria-label="Nome do seu negócio"
-          className="h-14 rounded-xl bg-background pl-12 text-base"
+          className="h-16 rounded-2xl bg-background pl-14 text-lg shadow-2xl shadow-primary/10 border-2 border-primary/20 transition-all hover:border-primary/40 focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 font-medium"
         />
         {loading || navigating ? (
           <Loader2 className="absolute right-4 top-1/2 size-5 -translate-y-1/2 animate-spin text-muted-foreground" />

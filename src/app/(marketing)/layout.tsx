@@ -9,7 +9,7 @@ export default function MarketingLayout({
 }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-[1100px] items-center justify-between px-4">
           <Logo />
           <nav className="flex items-center gap-2">
@@ -23,7 +23,7 @@ export default function MarketingLayout({
         </div>
       </header>
       <main className="flex-1">{children}</main>
-      <footer className="border-t bg-surface">
+      <footer className="border-t border-border/50 bg-surface">
         <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-1">
             <Logo className="text-base" />
