@@ -27,10 +27,7 @@ export function ScoreRing({
   const [displayed, setDisplayed] = useState(animate ? 0 : score);
 
   useEffect(() => {
-    if (!animate) {
-      setDisplayed(score);
-      return;
-    }
+    if (!animate) return;
     let frame: number;
     const start = performance.now();
     const duration = 1200;

@@ -35,6 +35,13 @@ export interface CompetitorSnapshot {
 }
 
 export interface ReviewDataProvider {
+  /**
+   * O provider sabe se o dono respondeu cada avaliação?
+   * Places API (busca pública) NÃO sabe → false; mock e a futura Google
+   * Business Profile API → true. Quando false, a taxa de resposta não
+   * entra no score nem é exibida (evita penalizar dado que não temos).
+   */
+  readonly hasResponseData: boolean;
   searchBusiness(query: string): Promise<BusinessSearchResult[]>;
   getBusinessDetails(placeId: string): Promise<BusinessSearchResult>;
   getReviews(placeId: string): Promise<Review[]>;
@@ -52,6 +59,9 @@ export interface DiagnosisResult {
   score: number; // 0-100
   ratingGapVsCompetitors: number; // ex: -0.4
   responseRatePct: number;
+  /** false quando a fonte não expõe respostas do dono (ex.: Places API) —
+   *  nesse caso responseRatePct não conta no score nem deve ser exibido */
+  responseDataAvailable: boolean;
   reviewsPerMonth: number;
   expectedReviewsPerMonth: number;
   sentimentThemes: SentimentTheme[];
@@ -60,11 +70,17 @@ export interface DiagnosisResult {
   summary: string;
 }
 
+export interface AnalyzeOptions {
+  /** a fonte das avaliações expõe respostas do dono? default true */
+  responseDataAvailable?: boolean;
+}
+
 export interface AnalysisProvider {
   analyzeReviews(
     business: BusinessSearchResult,
     reviews: Review[],
-    competitors: CompetitorSnapshot[]
+    competitors: CompetitorSnapshot[],
+    options?: AnalyzeOptions
   ): Promise<DiagnosisResult>;
   suggestReply(
     review: Review,

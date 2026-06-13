@@ -1,5 +1,6 @@
 import type {
   AnalysisProvider,
+  AnalyzeOptions,
   BusinessSearchResult,
   CompetitorSnapshot,
   DiagnosisResult,
@@ -48,9 +49,13 @@ export const mockAnalysisProvider: AnalysisProvider = {
   async analyzeReviews(
     business: BusinessSearchResult,
     reviews: Review[],
-    competitors: CompetitorSnapshot[]
+    competitors: CompetitorSnapshot[],
+    options: AnalyzeOptions = {}
   ): Promise<DiagnosisResult> {
     await new Promise((r) => setTimeout(r, 400 + Math.random() * 300));
+
+    // a fonte expõe respostas do dono? (Places API não → não penaliza o score)
+    const responseDataAvailable = options.responseDataAvailable ?? true;
 
     const mock = findBusinessByPlaceId(business.placeId);
     // sem concorrentes encontrados (possível em modo live), gap = 0
@@ -71,36 +76,60 @@ export const mockAnalysisProvider: AnalysisProvider = {
     const negativePct =
       (reviews.filter((r) => r.rating <= 3).length / (reviews.length || 1)) * 100;
 
-    // score = média ponderada determinística (nota relativa, taxa de resposta, ritmo, % críticas)
+    // score = média ponderada determinística.
+    // Pesos: nota relativa 35%, taxa de resposta 25%, ritmo 20%, % críticas 20%.
+    // Sem dado de resposta, os 25% são redistribuídos entre os 3 fatores
+    // mensuráveis (a régua segue 0–100, sem penalizar o que não medimos).
     const ratingScore = clamp(((business.rating - avgCompetitorRating + 1) / 2) * 100, 0, 100);
-    const responseScore = responseRatePct;
     const paceScore = clamp((reviewsPerMonth / expectedReviewsPerMonth) * 100, 0, 100);
     const negativeScore = clamp(100 - negativePct * 2, 0, 100);
-    const score = Math.round(
-      ratingScore * 0.35 + responseScore * 0.25 + paceScore * 0.2 + negativeScore * 0.2
-    );
+
+    let score: number;
+    if (responseDataAvailable) {
+      const responseScore = responseRatePct;
+      score = Math.round(
+        ratingScore * 0.35 + responseScore * 0.25 + paceScore * 0.2 + negativeScore * 0.2
+      );
+    } else {
+      // pesos normalizados sem a taxa de resposta (0.35 + 0.20 + 0.20 = 0.75)
+      score = Math.round(
+        (ratingScore * 0.35 + paceScore * 0.2 + negativeScore * 0.2) / 0.75
+      );
+    }
 
     const sentimentThemes = buildSentimentThemes(reviews);
     const topCritica = sentimentThemes.find((t) => t.type === "critica");
 
-    const criticalIssues = [
-      responseRatePct < 50
+    // problema #1 muda conforme temos (ou não) dado de resposta
+    const firstIssue =
+      responseDataAvailable && responseRatePct < 50
         ? `Você responde apenas ${responseRatePct}% das avaliações — clientes em potencial percebem o silêncio como descaso.`
-        : `Sua nota está ${ratingGap < 0 ? Math.abs(ratingGap).toFixed(1) + " ponto abaixo" : "praticamente empatada com"} a média dos concorrentes próximos.`,
+        : ratingGap < 0
+          ? `Sua nota está ${Math.abs(ratingGap).toFixed(1)} ponto abaixo da média dos concorrentes próximos — cada décimo conta na busca local.`
+          : "Seu volume de avaliações é baixo para o seu porte, o que limita sua prova social e visibilidade no Google.";
+
+    const criticalIssues = [
+      firstIssue,
       `Seu negócio recebe ~${reviewsPerMonth} avaliações/mês, mas negócios do seu porte deveriam receber ~${expectedReviewsPerMonth} — você está perdendo prova social todos os meses.`,
       topCritica
         ? `"${topCritica.theme}" aparece em ${topCritica.pct}% das avaliações como crítica recorrente — e está visível para qualquer cliente que pesquisa você no Google.`
-        : `${Math.round(negativePct)}% das suas avaliações são neutras ou negativas e estão públicas no Google sem nenhuma resposta sua.`,
+        : `${Math.round(negativePct)}% das suas avaliações são neutras ou negativas e estão públicas no Google.`,
     ];
+
+    const responseRec = responseDataAvailable
+      ? `Responda 100% das avaliações ${responseRatePct < 50 ? "— hoje você responde só " + responseRatePct + "%" : "para manter sua taxa alta"}: respostas mostram ao Google e aos clientes que o negócio é ativo.`
+      : "Responda 100% das avaliações, positivas e negativas: respostas mostram ao Google e aos clientes que o negócio é ativo e cuida da relação.";
 
     const recommendations = [
       "Automatize o pedido de avaliações: peça a nota a cada cliente atendido com um QR code ou link — clientes satisfeitos avaliam quando o pedido chega na hora certa.",
       "Intercepte críticas antes de virarem públicas: direcione notas baixas para um canal privado de feedback e resolva o problema direto com o cliente.",
-      `Responda 100% das avaliações ${responseRatePct < 50 ? "— hoje você responde só " + responseRatePct + "%" : "para manter sua taxa alta"}: respostas mostram ao Google e aos clientes que o negócio é ativo.`,
+      responseRec,
       topCritica
         ? `Ataque a causa raiz de "${topCritica.theme.toLowerCase()}": é o tema mais citado nas críticas e o que mais derruba sua nota.`
         : "Monitore semanalmente os temas das críticas para agir antes que virem padrão.",
-      `Acompanhe seus 3 concorrentes diretos: o líder da sua região tem nota ${Math.max(...competitors.map((c) => c.rating)).toFixed(1)} — cada décimo de diferença muda sua posição no mapa do Google.`,
+      competitors.length > 0
+        ? `Acompanhe seus 3 concorrentes diretos: o líder da sua região tem nota ${Math.max(...competitors.map((c) => c.rating)).toFixed(1)} — cada décimo de diferença muda sua posição no mapa do Google.`
+        : "Monitore os concorrentes diretos da sua região: cada décimo de nota muda sua posição no mapa do Google.",
     ];
 
     const summary =
@@ -108,7 +137,10 @@ export const mockAnalysisProvider: AnalysisProvider = {
       (ratingGap < 0
         ? `${Math.abs(ratingGap).toFixed(1)} ponto abaixo da média dos concorrentes próximos (${avgCompetitorRating.toFixed(1)}). `
         : `ligeiramente acima da média dos concorrentes próximos (${avgCompetitorRating.toFixed(1)}). `) +
-      `A taxa de resposta às avaliações é de ${responseRatePct}% e o ritmo atual é de ~${reviewsPerMonth} novas avaliações por mês, ` +
+      (responseDataAvailable
+        ? `A taxa de resposta às avaliações é de ${responseRatePct}% e o `
+        : `O `) +
+      `ritmo atual é de ~${reviewsPerMonth} novas avaliações por mês, ` +
       `abaixo do potencial estimado de ${expectedReviewsPerMonth}. ` +
       (topCritica
         ? `O tema "${topCritica.theme}" concentra as críticas recorrentes e merece atenção imediata. `
@@ -119,6 +151,7 @@ export const mockAnalysisProvider: AnalysisProvider = {
       score,
       ratingGapVsCompetitors: ratingGap,
       responseRatePct,
+      responseDataAvailable,
       reviewsPerMonth,
       expectedReviewsPerMonth,
       sentimentThemes,

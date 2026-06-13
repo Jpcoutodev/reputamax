@@ -28,6 +28,7 @@ export default async function ReviewFunnelPage({ params }: PageProps) {
         businessName={business.name}
         welcomeMessage={business.welcomeMessage}
         reviewLink={business.reviewLink}
+        logoUrl={business.logoUrl}
       />
     </main>
   );

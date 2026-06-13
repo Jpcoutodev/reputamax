@@ -15,6 +15,8 @@ interface FunnelProps {
   welcomeMessage?: string;
   /** link "escreva uma avaliação" do Google; sem ele, nota alta mostra só agradecimento */
   reviewLink?: string;
+  /** logo do negócio; sem ela, mostra a inicial do nome */
+  logoUrl?: string;
   /** desativa navegação/efeitos — usado no preview da área logada */
   previewMode?: boolean;
 }
@@ -24,6 +26,7 @@ export function ReviewFunnel({
   businessName,
   welcomeMessage,
   reviewLink,
+  logoUrl,
   previewMode = false,
 }: FunnelProps) {
   const router = useRouter();
@@ -74,9 +77,18 @@ export function ReviewFunnel({
   return (
     <div className="flex w-full max-w-md flex-col items-center gap-8">
       <div className="flex flex-col items-center gap-3 text-center">
-        <span className="flex size-16 items-center justify-center rounded-2xl bg-primary text-2xl font-medium text-primary-foreground">
-          {businessName.charAt(0)}
-        </span>
+        {logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoUrl}
+            alt={businessName}
+            className="h-20 w-auto max-w-[220px] object-contain"
+          />
+        ) : (
+          <span className="flex size-16 items-center justify-center rounded-2xl bg-primary text-2xl font-medium text-primary-foreground">
+            {businessName.charAt(0)}
+          </span>
+        )}
         <h1 className="text-2xl font-medium tracking-tight">{businessName}</h1>
         <p className="text-lg text-muted-foreground">
           {welcomeMessage || "Como foi sua experiência?"}

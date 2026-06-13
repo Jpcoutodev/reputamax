@@ -14,14 +14,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { updateAiProvider, updatePrompt } from "@/app/admin/actions";
+import { updateAiModel, updateAiProvider, updatePrompt } from "@/app/admin/actions";
+
+interface ProviderModel {
+  presets: string[];
+  default: string;
+  current: string | null;
+  effective: string;
+}
 
 interface ProviderOption {
   id: string;
   label: string;
   description: string;
   keyConfigured: boolean;
+  model: ProviderModel | null;
 }
 
 interface PromptField {
@@ -45,6 +54,32 @@ export function AiSettings({ activeProvider, providers, prompts }: AiSettingsPro
     Object.fromEntries(prompts.map((p) => [p.key, p.currentOverride ?? p.defaultValue]))
   );
   const [savingKey, setSavingKey] = useState<string | null>(null);
+
+  // modelo digitável por provider (inicia com a escolha atual ou o efetivo)
+  const [models, setModels] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      providers
+        .filter((p) => p.model)
+        .map((p) => [p.id, p.model!.current ?? p.model!.effective])
+    )
+  );
+  const [savingModel, setSavingModel] = useState<string | null>(null);
+
+  const activeOption = providers.find((p) => p.id === provider);
+
+  async function handleSaveModel(providerId: string, modelConfig: ProviderModel) {
+    setSavingModel(providerId);
+    const value = (models[providerId] ?? "").trim();
+    // igual ao default = remove o override (volta a env > default)
+    const toSave = value === modelConfig.default ? "" : value;
+    const result = await updateAiModel(providerId, toSave);
+    setSavingModel(null);
+    if (!result.ok) {
+      toast.error("Não foi possível salvar o modelo.");
+      return;
+    }
+    toast.success("Modelo atualizado — vale a partir da próxima análise.");
+  }
 
   async function handleProviderChange(next: string | null) {
     if (!next || next === provider) return;
@@ -122,6 +157,53 @@ export function AiSettings({ activeProvider, providers, prompts }: AiSettingsPro
               <Loader2 className="size-4 animate-spin text-muted-foreground" />
             ) : null}
           </div>
+
+          {/* Modelo do provider ativo — presets + digitação livre */}
+          {activeOption?.model ? (
+            <div className="flex flex-col gap-2 rounded-lg border bg-surface p-4">
+              <Label htmlFor="ai-model" className="text-sm font-medium">
+                Modelo do {activeOption.label}
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Escolha um modelo da lista ou digite o nome de um novo. Em caso de
+                erro, a análise cai no modo determinístico automaticamente.
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <Input
+                  id="ai-model"
+                  list="ai-model-presets"
+                  className="w-72 font-mono text-xs"
+                  placeholder={activeOption.model.default}
+                  value={models[provider] ?? ""}
+                  onChange={(e) =>
+                    setModels((prev) => ({ ...prev, [provider]: e.target.value }))
+                  }
+                />
+                <datalist id="ai-model-presets">
+                  {activeOption.model.presets.map((m) => (
+                    <option key={m} value={m} />
+                  ))}
+                </datalist>
+                <Button
+                  size="sm"
+                  onClick={() => handleSaveModel(provider, activeOption.model!)}
+                  disabled={savingModel === provider}
+                >
+                  {savingModel === provider ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : null}
+                  Salvar modelo
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Em uso agora: <span className="font-mono">{activeOption.model.effective}</span>
+                {activeOption.model.current
+                  ? " (definido aqui)"
+                  : " (padrão do sistema)"}
+              </p>
+            </div>
+          ) : null}
+
           <ul className="flex flex-col gap-1.5">
             {providers.map((p) => (
               <li key={p.id} className="flex items-center gap-2 text-sm">

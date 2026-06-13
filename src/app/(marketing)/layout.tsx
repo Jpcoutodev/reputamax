@@ -11,9 +11,13 @@ export default function MarketingLayout({
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-[1100px] items-center justify-between px-4">
-          <Logo />
+          <Logo landscape />
           <nav className="flex items-center gap-2">
-            <Button variant="ghost" render={<Link href="/login" />}>
+            <Button
+              variant="ghost"
+              className="hidden sm:inline-flex"
+              render={<Link href="/login" />}
+            >
               Entrar
             </Button>
             <Button render={<Link href="/diagnostico" />}>
@@ -26,7 +30,7 @@ export default function MarketingLayout({
       <footer className="border-t border-border/50 bg-surface">
         <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-1">
-            <Logo className="text-base" />
+            <Logo landscape className="text-base" />
             <p>Gestão ativa de reputação para negócios locais brasileiros.</p>
             <a
               href="mailto:contato@reputamax.app"

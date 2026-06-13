@@ -1,5 +1,6 @@
 import { AiSettings } from "@/components/admin/ai-settings";
 import { getAppSettings } from "@/lib/data/settings";
+import { MODEL_CONFIG, resolveModel } from "@/lib/providers/analysis/models";
 import {
   DEFAULT_ANALYSIS_RULES,
   DEFAULT_ANALYSIS_SYSTEM_PROMPT,
@@ -17,24 +18,43 @@ export default async function AdminConfigPage() {
       label: "Determinístico (sem IA)",
       description: "análise por regras; fallback de todos os outros",
       keyConfigured: true,
+      model: null,
     },
     {
       id: "minimax",
-      label: `MiniMax (${process.env.MINIMAX_MODEL ?? "MiniMax-M2"})`,
+      label: "MiniMax",
       description: "crédito pré-pago em uso",
       keyConfigured: Boolean(process.env.MINIMAX_API_KEY),
+      model: {
+        presets: MODEL_CONFIG.minimax.presets,
+        default: MODEL_CONFIG.minimax.default,
+        current: settings.aiModels.minimax,
+        effective: resolveModel("minimax", settings.aiModels.minimax),
+      },
     },
     {
       id: "anthropic",
-      label: `Claude (${process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6"})`,
-      description: "Anthropic — requer ANTHROPIC_API_KEY",
+      label: "Claude (Anthropic)",
+      description: "requer ANTHROPIC_API_KEY",
       keyConfigured: Boolean(process.env.ANTHROPIC_API_KEY),
+      model: {
+        presets: MODEL_CONFIG.anthropic.presets,
+        default: MODEL_CONFIG.anthropic.default,
+        current: settings.aiModels.anthropic,
+        effective: resolveModel("anthropic", settings.aiModels.anthropic),
+      },
     },
     {
       id: "openai",
-      label: `GPT (${process.env.OPENAI_MODEL ?? "gpt-5.1"})`,
-      description: "OpenAI — requer OPENAI_API_KEY",
+      label: "GPT (OpenAI)",
+      description: "requer OPENAI_API_KEY",
       keyConfigured: Boolean(process.env.OPENAI_API_KEY),
+      model: {
+        presets: MODEL_CONFIG.openai.presets,
+        default: MODEL_CONFIG.openai.default,
+        current: settings.aiModels.openai,
+        effective: resolveModel("openai", settings.aiModels.openai),
+      },
     },
   ];
 
@@ -67,7 +87,7 @@ export default async function AdminConfigPage() {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-medium tracking-tight">Configurações</h1>
         <p className="text-sm text-muted-foreground">
-          Controle da IA: qual modelo gera as análises e com quais prompts.
+          Controle da IA: qual provider e modelo geram as análises, e com quais prompts.
         </p>
       </div>
       <AiSettings

@@ -108,6 +108,10 @@ function buildAnalysisUserPrompt(
     .map((c) => `- ${c.name}: ${c.rating}★ (${c.reviewCount} avaliações, ${c.distanceKm} km)`)
     .join("\n");
 
+  const responseLine = base.responseDataAvailable
+    ? `- Taxa de resposta às avaliações: ${base.responseRatePct}%`
+    : `- Taxa de resposta às avaliações: NÃO DISPONÍVEL nesta fonte de dados — NÃO comente, critique ou estime a taxa de resposta no diagnóstico.`;
+
   return `Analise a reputação deste negócio no Google e responda no formato JSON especificado.
 
 NEGÓCIO: ${business.name} (${business.category || "negócio local"})
@@ -116,7 +120,7 @@ Nota: ${business.rating} | Total de avaliações: ${business.reviewCount}
 MÉTRICAS CALCULADAS:
 - Score de reputação: ${base.score}/100
 - Diferença de nota vs. média dos concorrentes: ${base.ratingGapVsCompetitors > 0 ? "+" : ""}${base.ratingGapVsCompetitors}
-- Taxa de resposta às avaliações: ${base.responseRatePct}% (pode estar subestimada — dado parcial)
+${responseLine}
 - Avaliações novas por mês: ~${base.reviewsPerMonth} (potencial estimado: ${base.expectedReviewsPerMonth})
 
 CONCORRENTES PRÓXIMOS:
@@ -142,9 +146,14 @@ export function createLlmAnalysisProvider(
   overrides: PromptOverrides = {}
 ): AnalysisProvider {
   return {
-    async analyzeReviews(business, reviews, competitors): Promise<DiagnosisResult> {
+    async analyzeReviews(business, reviews, competitors, options): Promise<DiagnosisResult> {
       // métricas determinísticas — sempre calculadas, são o fallback completo
-      const base = await mockAnalysisProvider.analyzeReviews(business, reviews, competitors);
+      const base = await mockAnalysisProvider.analyzeReviews(
+        business,
+        reviews,
+        competitors,
+        options
+      );
       try {
         const content = await complete(
           [

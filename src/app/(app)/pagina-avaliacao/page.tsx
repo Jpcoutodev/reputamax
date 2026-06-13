@@ -20,6 +20,7 @@ export default async function PaginaAvaliacaoPage() {
         businessName={business.name}
         initialWelcomeMessage={business.welcomeMessage ?? ""}
         initialReviewLink={business.reviewLink ?? ""}
+        initialLogoUrl={business.logoUrl}
         persisted={Boolean(business.id)}
       />
     </div>

@@ -98,8 +98,17 @@ export default async function CrmDiagnosticPage({ params }: PageProps) {
             />
             <MetricCard
               label="Taxa de resposta"
-              value={`${result.responseRatePct}%`}
-              semaphore={result.responseRatePct >= 70 ? "verde" : result.responseRatePct >= 40 ? "ambar" : "vermelho"}
+              value={result.responseDataAvailable ? `${result.responseRatePct}%` : "—"}
+              hint={result.responseDataAvailable ? undefined : "indisponível na busca pública"}
+              semaphore={
+                !result.responseDataAvailable
+                  ? "neutro"
+                  : result.responseRatePct >= 70
+                    ? "verde"
+                    : result.responseRatePct >= 40
+                      ? "ambar"
+                      : "vermelho"
+              }
             />
             <MetricCard
               label="Avaliações/mês"

@@ -12,6 +12,12 @@ export type AiProviderId = "mock" | "minimax" | "anthropic" | "openai";
 
 export interface AppSettings {
   aiProvider: AiProviderId;
+  /** modelo escolhido por provider — null = usa env > default do código */
+  aiModels: {
+    minimax: string | null;
+    anthropic: string | null;
+    openai: string | null;
+  };
   /** overrides de prompt — null = usa o padrão do código */
   aiAnalysisSystem: string | null;
   aiAnalysisRules: string | null;
@@ -29,6 +35,7 @@ function envDefaultProvider(): AiProviderId {
 export const getAppSettings = cache(async (): Promise<AppSettings> => {
   const defaults: AppSettings = {
     aiProvider: envDefaultProvider(),
+    aiModels: { minimax: null, anthropic: null, openai: null },
     aiAnalysisSystem: null,
     aiAnalysisRules: null,
     aiReplySystem: null,
@@ -44,13 +51,22 @@ export const getAppSettings = cache(async (): Promise<AppSettings> => {
 
   const map = new Map(data.map((row) => [row.key, row.value]));
   const provider = map.get("ai_provider");
+  const str = (key: string): string | null => {
+    const v = map.get(key);
+    return typeof v === "string" && v.trim() ? v : null;
+  };
   return {
     aiProvider: AI_PROVIDERS.includes(provider as AiProviderId)
       ? (provider as AiProviderId)
       : defaults.aiProvider,
-    aiAnalysisSystem: (map.get("ai_analysis_system") as string) ?? null,
-    aiAnalysisRules: (map.get("ai_analysis_rules") as string) ?? null,
-    aiReplySystem: (map.get("ai_reply_system") as string) ?? null,
+    aiModels: {
+      minimax: str("ai_model_minimax"),
+      anthropic: str("ai_model_anthropic"),
+      openai: str("ai_model_openai"),
+    },
+    aiAnalysisSystem: str("ai_analysis_system"),
+    aiAnalysisRules: str("ai_analysis_rules"),
+    aiReplySystem: str("ai_reply_system"),
   };
 });
 

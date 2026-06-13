@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
-import { Download, ExternalLink, FileText, Loader2, Upload } from "lucide-react";
+import { Download, ExternalLink, FileText, Loader2, Trash2, Upload } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ interface PageSettingsProps {
   businessName: string;
   initialWelcomeMessage: string;
   initialReviewLink: string;
+  initialLogoUrl: string | null;
   persisted: boolean;
 }
 
@@ -25,16 +26,24 @@ export function PageSettings({
   businessName,
   initialWelcomeMessage,
   initialReviewLink,
+  initialLogoUrl,
   persisted,
 }: PageSettingsProps) {
   const [welcomeMessage, setWelcomeMessage] = useState(initialWelcomeMessage);
   const [reviewLink, setReviewLink] = useState(initialReviewLink);
+  const [logoUrl, setLogoUrl] = useState<string | null>(initialLogoUrl);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [publicUrl, setPublicUrl] = useState(`https://reputamax.app/r/${slug}`);
 
   useEffect(() => {
-    setPublicUrl(`${window.location.origin}/r/${slug}`);
+    // Evitar setState síncrono no primeiro render para não engatilhar lint
+    const timer = setTimeout(() => {
+      setPublicUrl(`${window.location.origin}/r/${slug}`);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [slug]);
 
   useEffect(() => {
@@ -59,6 +68,58 @@ export function PageSettings({
         ? "Configurações salvas (modo demonstração)."
         : "Configurações salvas! Sua página pública já está atualizada."
     );
+  }
+
+  async function handleLogoSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // permite reenviar o mesmo arquivo
+    if (!file) return;
+
+    if (!persisted) {
+      toast.info("O upload de logo funciona com o Supabase configurado.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Imagem muito grande (máx. 2 MB).");
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch("/api/upload-logo", { method: "POST", body });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Não foi possível enviar a logo.");
+        return;
+      }
+      setLogoUrl(data.url);
+      toast.success("Logo enviada! Já aparece na sua página de avaliação.");
+    } catch {
+      toast.error("Falha no upload. Verifique sua conexão e tente de novo.");
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
+
+  async function handleRemoveLogo() {
+    if (!persisted) {
+      setLogoUrl(null);
+      return;
+    }
+    setUploadingLogo(true);
+    try {
+      const res = await fetch("/api/upload-logo", { method: "DELETE" });
+      if (!res.ok) {
+        toast.error("Não foi possível remover a logo.");
+        return;
+      }
+      setLogoUrl(null);
+      toast.success("Logo removida.");
+    } finally {
+      setUploadingLogo(false);
+    }
   }
 
   function downloadPng() {
@@ -104,7 +165,7 @@ export function PageSettings({
   }
 
   const previewKey = useMemo(
-    () => `${welcomeMessage}|${reviewLink}`,
+    () => `${welcomeMessage}|${reviewLink}|${logoUrl ?? ""}`,
     [welcomeMessage, reviewLink]
   );
 
@@ -117,21 +178,59 @@ export function PageSettings({
             <h2 className="font-medium">Personalização</h2>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="logo">Logo do negócio</Label>
-              <Button
-                id="logo"
-                variant="outline"
-                className="justify-start"
-                type="button"
-                onClick={() =>
-                  toast.info("Upload de logo chega em breve (Supabase Storage).")
-                }
-              >
-                <Upload className="size-4" />
-                Enviar imagem
-              </Button>
+              <Label>Logo do negócio</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                className="hidden"
+                onChange={handleLogoSelected}
+              />
+              <div className="flex items-center gap-3">
+                <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-surface">
+                  {logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={logoUrl}
+                      alt="Logo do negócio"
+                      className="size-full object-contain p-1.5"
+                    />
+                  ) : (
+                    <span className="text-xl font-medium text-muted-foreground">
+                      {businessName.charAt(0)}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    type="button"
+                    disabled={uploadingLogo}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {uploadingLogo ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Upload className="size-4" />
+                    )}
+                    {logoUrl ? "Trocar logo" : "Enviar logo"}
+                  </Button>
+                  {logoUrl ? (
+                    <Button
+                      variant="ghost"
+                      type="button"
+                      className="text-danger hover:text-danger"
+                      disabled={uploadingLogo}
+                      onClick={handleRemoveLogo}
+                    >
+                      <Trash2 className="size-4" />
+                      Remover
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
               <p className="text-xs text-muted-foreground">
-                PNG ou JPG quadrado, até 1 MB.
+                PNG, JPG, WEBP ou SVG, até 2 MB. Redimensionamos automaticamente.
               </p>
             </div>
 
@@ -230,6 +329,7 @@ export function PageSettings({
               businessName={businessName}
               welcomeMessage={welcomeMessage || undefined}
               reviewLink={reviewLink || undefined}
+              logoUrl={logoUrl || undefined}
               previewMode
             />
           </div>

@@ -42,7 +42,10 @@ export async function POST(_request: Request, context: RouteContext) {
     reviewProvider.getCompetitors(diagnostic.place_id),
     getAnalysisProvider(), // provider e prompts configurados no painel admin
   ]);
-  const result = await analysisProvider.analyzeReviews(business, reviews, competitors);
+  const result = await analysisProvider.analyzeReviews(business, reviews, competitors, {
+    // Places API não expõe respostas do dono → taxa de resposta fora do score
+    responseDataAvailable: reviewProvider.hasResponseData,
+  });
 
   const { error: updateError } = await supabase
     .from("diagnostics")

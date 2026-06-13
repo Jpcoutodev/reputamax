@@ -133,6 +133,8 @@ function haversineKm(
 /* ---------- provider ---------- */
 
 export const googleReviewProvider: ReviewDataProvider = {
+  // a Places API não informa se o dono respondeu — só a GBP API (fase futura)
+  hasResponseData: false,
   async searchBusiness(query: string): Promise<BusinessSearchResult[]> {
     const data = await placesFetch<{ places?: PlaceDto[] }>(
       "/places:searchText",

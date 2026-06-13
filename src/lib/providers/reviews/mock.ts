@@ -24,6 +24,8 @@ function normalize(s: string): string {
 }
 
 export const mockReviewProvider: ReviewDataProvider = {
+  // o seed tem o campo `replied` real, então a taxa de resposta é confiável
+  hasResponseData: true,
   async searchBusiness(query: string): Promise<BusinessSearchResult[]> {
     await simulateLatency();
     const q = normalize(query.trim());

@@ -26,6 +26,27 @@ export async function updateAiProvider(provider: string): Promise<ActionResult> 
   return { ok: true };
 }
 
+const modelSchema = z.object({
+  provider: z.enum(["minimax", "anthropic", "openai"]),
+  model: z.string().trim().max(120),
+});
+
+/** Define o modelo de um provider (texto vazio = volta ao env/default do código). */
+export async function updateAiModel(provider: string, model: string): Promise<ActionResult> {
+  if (!(await ensureAdmin())) return { ok: false, error: "sem_permissao" };
+  const parsed = modelSchema.safeParse({ provider, model });
+  if (!parsed.success) return { ok: false, error: "payload_invalido" };
+
+  const key = `ai_model_${parsed.data.provider}`;
+  if (parsed.data.model) {
+    await setSetting(key, parsed.data.model);
+  } else {
+    await deleteSetting(key);
+  }
+  revalidatePath("/admin/configuracoes");
+  return { ok: true };
+}
+
 const promptKeySchema = z.enum(["ai_analysis_system", "ai_analysis_rules", "ai_reply_system"]);
 
 /** Salva um prompt customizado (texto vazio = volta ao padrão do código). */

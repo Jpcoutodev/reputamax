@@ -26,6 +26,7 @@ export interface AppBusiness {
   googlePlaceId: string | null;
   reviewLink: string | null;
   welcomeMessage: string | null;
+  logoUrl: string | null;
   tone: "amigavel" | "formal";
   plan: string;
   trialEndsAt: string | null;
@@ -51,6 +52,7 @@ function demoAppBusiness(): AppBusiness {
     googlePlaceId: demo.placeId,
     reviewLink: `https://search.google.com/local/writereview?placeid=${demo.placeId}`,
     welcomeMessage: null,
+    logoUrl: null,
     tone: "amigavel",
     plan: "trial",
     trialEndsAt: null,
@@ -185,7 +187,7 @@ export const getCurrentBusiness = cache(async (): Promise<AppBusiness> => {
   let { data: row } = await supabase
     .from("businesses")
     .select(
-      "id, name, slug, category, address, google_place_id, review_link, welcome_message, tone, plan, trial_ends_at, onboarding_steps"
+      "id, name, slug, category, address, google_place_id, review_link, welcome_message, logo_url, tone, plan, trial_ends_at, onboarding_steps"
     )
     .eq("owner_id", user.id)
     .maybeSingle();
@@ -199,7 +201,7 @@ export const getCurrentBusiness = cache(async (): Promise<AppBusiness> => {
     const { data: fresh } = await supabase
       .from("businesses")
       .select(
-        "id, name, slug, category, address, google_place_id, review_link, welcome_message, tone, plan, trial_ends_at, onboarding_steps"
+        "id, name, slug, category, address, google_place_id, review_link, welcome_message, logo_url, tone, plan, trial_ends_at, onboarding_steps"
       )
       .eq("id", created.id)
       .single();
@@ -217,6 +219,7 @@ export const getCurrentBusiness = cache(async (): Promise<AppBusiness> => {
     googlePlaceId: row.google_place_id,
     reviewLink: row.review_link,
     welcomeMessage: row.welcome_message,
+    logoUrl: row.logo_url,
     tone: row.tone === "formal" ? "formal" : "amigavel",
     plan: row.plan ?? "trial",
     trialEndsAt: row.trial_ends_at,

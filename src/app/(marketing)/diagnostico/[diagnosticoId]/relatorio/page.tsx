@@ -78,10 +78,20 @@ export default function RelatorioPage() {
         />
         <MetricCard
           label="Taxa de resposta"
-          value={`${result.responseRatePct}%`}
-          hint="das avaliações respondidas"
+          value={result.responseDataAvailable ? `${result.responseRatePct}%` : "—"}
+          hint={
+            result.responseDataAvailable
+              ? "das avaliações respondidas"
+              : "disponível ao conectar o Google Meu Negócio"
+          }
           semaphore={
-            result.responseRatePct >= 70 ? "verde" : result.responseRatePct >= 40 ? "ambar" : "vermelho"
+            !result.responseDataAvailable
+              ? "neutro"
+              : result.responseRatePct >= 70
+                ? "verde"
+                : result.responseRatePct >= 40
+                  ? "ambar"
+                  : "vermelho"
           }
         />
         <MetricCard

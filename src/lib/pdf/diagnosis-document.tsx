@@ -163,10 +163,11 @@ export function DiagnosisDocument({ business, result, generatedAt }: Props) {
     },
     {
       label: "Taxa de resposta",
-      value: `${result.responseRatePct}%`,
-      hint: "das avaliacoes",
-      color:
-        result.responseRatePct >= 70
+      value: result.responseDataAvailable ? `${result.responseRatePct}%` : "—",
+      hint: result.responseDataAvailable ? "das avaliacoes" : "indisponivel",
+      color: !result.responseDataAvailable
+        ? COLORS.muted
+        : result.responseRatePct >= 70
           ? COLORS.success
           : result.responseRatePct >= 40
             ? COLORS.warning
