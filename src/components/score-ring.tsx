@@ -2,18 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { scoreColor, scoreLabel } from "@/lib/score-utils";
 
-export function scoreColor(score: number): string {
-  if (score >= 80) return "var(--success)";
-  if (score >= 50) return "var(--warning)";
-  return "var(--danger)";
-}
-
-export function scoreLabel(score: number): string {
-  if (score >= 80) return "Reputação saudável";
-  if (score >= 50) return "Reputação com potencial desperdiçado";
-  return "Reputação em risco";
-}
+export { scoreColor, scoreLabel };
 
 interface ScoreRingProps {
   score: number; // 0-100

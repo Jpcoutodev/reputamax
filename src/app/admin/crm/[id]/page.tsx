@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MetricCard } from "@/components/metric-card";
-import { ScoreRing, scoreLabel } from "@/components/score-ring";
+import { ScoreRing } from "@/components/score-ring";
+import { scoreLabel } from "@/lib/score-utils";
 import { getCrmDiagnostic } from "@/lib/data/admin-queries";
 
 export const metadata = { title: "Relatório de diagnóstico" };
