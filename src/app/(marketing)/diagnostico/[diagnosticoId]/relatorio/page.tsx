@@ -7,12 +7,6 @@ import { AlertTriangle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { MetricCard } from "@/components/metric-card";
 import { ScoreRing, scoreLabel } from "@/components/score-ring";
 import { useDiagnosis } from "@/components/diagnostico/use-diagnosis";
@@ -200,26 +194,23 @@ export default function RelatorioPage() {
           O Reputamax automatiza o pedido de avaliações, intercepta críticas e
           responde por você — tudo que este relatório recomenda.
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button size="lg" render={<Link href={`/cadastro?diagnostico=${placeId}`} />}>
+        <div className="flex w-full flex-col items-stretch justify-center gap-3 sm:w-auto sm:flex-row sm:items-center">
+          <Button
+            size="lg"
+            className="h-auto whitespace-normal py-3 text-center leading-tight"
+            render={<Link href={`/cadastro?diagnostico=${placeId}`} />}
+          >
             Resolver isso com o Reputamax — 14 dias grátis, sem cartão
           </Button>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger render={<span tabIndex={0} />}>
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  disabled
-                  className="pointer-events-none"
-                >
-                  <Download className="size-4" />
-                  Baixar PDF
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Em breve</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Button
+            size="lg"
+            variant="secondary"
+            className="h-auto py-3"
+            render={<a href={`/api/diagnostico/${placeId}/pdf`} />}
+          >
+            <Download className="size-4" />
+            Baixar PDF
+          </Button>
         </div>
       </section>
     </div>

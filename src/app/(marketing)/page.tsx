@@ -4,6 +4,7 @@ import {
   Check,
   Dumbbell,
   Hotel,
+  MessageSquareOff,
   MessageSquareReply,
   ScissorsLineDashed,
   Search,
@@ -11,6 +12,7 @@ import {
   Star,
   Stethoscope,
   Store,
+  TrendingDown,
   TrendingUp,
   UtensilsCrossed,
   Wrench,
@@ -44,16 +46,22 @@ import { CountUp } from "@/components/landing/count-up";
 
 const problems = [
   {
+    icon: TrendingDown,
+    stat: "3x",
     title: "Clientes insatisfeitos avaliam mais",
     description:
       "Estudos mostram que clientes insatisfeitos têm até 3x mais chance de deixar uma avaliação do que clientes satisfeitos. Sem gestão ativa, sua nota é naturalmente distorcida para baixo. Seus clientes felizes saem calados. Os irritados vão direto pro Google.",
   },
   {
+    icon: Search,
+    stat: "90%",
     title: "90% pesquisam antes de comprar",
     description:
       "9 em cada 10 consumidores leem avaliações antes de escolher um negócio local. Se sua nota está abaixo de 4.5, você perde clientes todos os dias para concorrentes melhor avaliados — mesmo que seu serviço seja superior.",
   },
   {
+    icon: MessageSquareOff,
+    stat: "45%",
     title: "Avaliações negativas sem resposta",
     description:
       "Cada avaliação negativa sem resposta diz ao próximo cliente: \"esse negócio não se importa\". 45% dos consumidores evitam negócios que não respondem críticas. Seu silêncio está custando dinheiro.",
@@ -251,6 +259,45 @@ export default function LandingPage() {
       <JsonLd data={landingSchemas()} />
       <TrackView event="landing_view" />
 
+      {/* ─── Pitch + mockup ─── */}
+      <section className="bg-surface">
+        <div className="mx-auto grid w-full max-w-[1100px] items-center gap-14 px-4 py-20 md:grid-cols-2 md:py-28">
+          <AnimateOnScroll>
+            <div className="flex flex-col items-start gap-6">
+              <Badge variant="secondary" className="bg-accent text-accent-foreground">
+                Gestão ativa de reputação
+              </Badge>
+              <h2 className="text-3xl font-heading font-bold leading-[1.15] tracking-tight md:text-4xl lg:text-5xl">
+                Boa reputação não é só status.{" "}
+                <span className="text-gradient">É mais clientes entrando pela porta.</span>
+              </h2>
+              <p className="text-lg leading-relaxed text-foreground/80">
+                Cada estrela a menos no Google é dinheiro saindo do bolso. O Reputamax
+                responde avaliações com IA, alerta você em tempo real e faz sua nota
+                subir mês após mês.
+              </p>
+              <div className="flex flex-wrap items-center gap-4">
+                <Button size="lg" render={<Link href="/diagnostico" />}>
+                  Começar diagnóstico grátis
+                </Button>
+                <Link
+                  href="#como-funciona"
+                  className="group flex items-center gap-1.5 text-sm font-heading font-semibold text-primary underline-offset-4 hover:underline"
+                >
+                  Veja como funciona
+                  <span className="inline-block transition-transform group-hover:translate-y-0.5">↓</span>
+                </Link>
+              </div>
+            </div>
+          </AnimateOnScroll>
+          <AnimateOnScroll delay={200}>
+            <div className="flex justify-center">
+              <HeroMockup />
+            </div>
+          </AnimateOnScroll>
+        </div>
+      </section>
+
       {/* ─── Hero ─── */}
       <section className="relative overflow-hidden border-b bg-surface">
         {/* Dot grid background */}
@@ -300,33 +347,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Pitch + mockup ─── */}
-      <section className="mx-auto grid w-full max-w-[1100px] items-center gap-14 px-4 py-20 md:grid-cols-2 md:py-28">
-        <AnimateOnScroll>
-          <div className="flex flex-col items-start gap-6">
-            <h2 className="text-3xl font-heading font-bold leading-tight tracking-tight md:text-4xl">
-              Cada estrela a menos no Google é dinheiro saindo pela porta.{" "}
-              <span className="text-gradient">O Reputamax resolve isso.</span>
-            </h2>
-            <p className="text-lg text-foreground/90">
-              Respostas com IA em segundos, alertas em tempo real a cada avaliação
-              crítica e um sistema inteligente que faz sua nota subir mês após mês.
-            </p>
-            <Link
-              href="#como-funciona"
-              className="text-sm font-heading font-semibold text-primary underline-offset-4 hover:underline"
-            >
-              Veja como funciona ↓
-            </Link>
-          </div>
-        </AnimateOnScroll>
-        <AnimateOnScroll delay={200}>
-          <div className="flex justify-center">
-            <HeroMockup />
-          </div>
-        </AnimateOnScroll>
-      </section>
-
       {/* ─── O problema ─── */}
       <section className="border-t">
         <div className="mx-auto w-full max-w-[1100px] px-4 py-20">
@@ -343,18 +363,28 @@ export default function LandingPage() {
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {problems.map((problem, i) => (
               <AnimateOnScroll key={problem.title} delay={i * 150}>
-                <Card className="card-hover-glow relative h-full overflow-hidden rounded-xl border shadow-none bg-surface/40 backdrop-blur-sm">
-                  <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-danger/40 to-transparent" />
-                  <span className="absolute -right-2 -top-6 select-none text-9xl font-heading font-bold text-foreground/[0.03]">
-                    0{i + 1}
-                  </span>
-                  <CardContent className="relative flex flex-col gap-4 p-8">
-                    <h3 className="text-xl font-heading font-bold tracking-tight text-foreground/90">
-                      {problem.title}
-                    </h3>
-                    <p className="text-base leading-relaxed text-foreground/80">
-                      {problem.description}
-                    </p>
+                <Card className="card-hover-glow group relative h-full overflow-hidden rounded-xl border border-border/50 bg-background shadow-sm">
+                  {/* ícone marca d'água no canto */}
+                  <div className="absolute -right-6 -top-6 text-danger/[0.04] transition-transform duration-500 group-hover:scale-110 group-hover:text-danger/[0.06]">
+                    <problem.icon className="size-40 -rotate-12" />
+                  </div>
+                  <CardContent className="relative flex flex-col gap-5 p-8">
+                    <div className="flex items-center justify-between">
+                      <div className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-danger/20 to-danger/5 text-danger shadow-inner shadow-danger/20 ring-1 ring-danger/20">
+                        <problem.icon className="size-7" />
+                      </div>
+                      <span className="font-heading text-3xl font-bold text-danger/80">
+                        {problem.stat}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <h3 className="text-xl font-heading font-bold tracking-tight text-foreground/90">
+                        {problem.title}
+                      </h3>
+                      <p className="text-base leading-relaxed text-foreground/80">
+                        {problem.description}
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
               </AnimateOnScroll>
@@ -435,13 +465,13 @@ export default function LandingPage() {
         </AnimateOnScroll>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((step, i) => (
-            <AnimateOnScroll key={step.title} delay={i * 150}>
+            <AnimateOnScroll key={step.title} delay={i * 150} className="overflow-visible">
               <div className={`flex flex-col gap-3 ${i < steps.length - 1 ? "step-connector" : ""}`}>
-                <span className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-lg font-heading font-semibold text-primary-foreground shadow-md shadow-primary/20">
+                <span className="relative z-[1] flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-lg font-heading font-semibold text-primary-foreground shadow-md shadow-primary/20">
                   {i + 1}
                 </span>
-                <h3 className="font-heading font-semibold">{step.title}</h3>
-                <p className="text-sm text-foreground/80">{step.description}</p>
+                <h3 className="relative z-[1] font-heading font-semibold">{step.title}</h3>
+                <p className="relative z-[1] text-sm text-foreground/80">{step.description}</p>
               </div>
             </AnimateOnScroll>
           ))}
