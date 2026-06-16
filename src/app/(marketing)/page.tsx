@@ -2,8 +2,11 @@ import Link from "next/link";
 import {
   Bell,
   Check,
+  ClipboardCheck,
   Dumbbell,
+  Gauge,
   Hotel,
+  Lightbulb,
   MessageSquareOff,
   MessageSquareReply,
   ScissorsLineDashed,
@@ -47,24 +50,21 @@ import { CountUp } from "@/components/landing/count-up";
 const problems = [
   {
     icon: TrendingDown,
-    stat: "3x",
     title: "Clientes insatisfeitos avaliam mais",
     description:
-      "Estudos mostram que clientes insatisfeitos têm até 3x mais chance de deixar uma avaliação do que clientes satisfeitos. Sem gestão ativa, sua nota é naturalmente distorcida para baixo. Seus clientes felizes saem calados. Os irritados vão direto pro Google.",
+      "Clientes insatisfeitos tendem a deixar avaliação espontânea com muito mais frequência do que os satisfeitos. Sem gestão ativa, sua nota é naturalmente distorcida para baixo. Seus clientes felizes saem calados. Os irritados vão direto pro Google.",
   },
   {
     icon: Search,
-    stat: "90%",
-    title: "90% pesquisam antes de comprar",
+    title: "A maioria pesquisa antes de comprar",
     description:
-      "9 em cada 10 consumidores leem avaliações antes de escolher um negócio local. Se sua nota está abaixo de 4.5, você perde clientes todos os dias para concorrentes melhor avaliados — mesmo que seu serviço seja superior.",
+      "Mais de 9 em cada 10 consumidores leem avaliações antes de escolher um negócio local. Se sua nota está abaixo de 4.5, você perde clientes todos os dias para concorrentes melhor avaliados — mesmo que seu serviço seja superior.",
   },
   {
     icon: MessageSquareOff,
-    stat: "45%",
     title: "Avaliações negativas sem resposta",
     description:
-      "Cada avaliação negativa sem resposta diz ao próximo cliente: \"esse negócio não se importa\". 45% dos consumidores evitam negócios que não respondem críticas. Seu silêncio está custando dinheiro.",
+      "Cada avaliação negativa sem resposta diz ao próximo cliente: \"esse negócio não se importa\". A maioria dos consumidores evita negócios que não respondem às críticas. Seu silêncio está custando dinheiro.",
   },
 ];
 
@@ -92,6 +92,27 @@ const solutions = [
     title: "Sua nota subindo mês a mês",
     description:
       "Seu cliente satisfeito vai embora calado; o insatisfeito é quem escreve. O Reputamax inverte isso: convida cada cliente a avaliar e transforma a maioria silenciosa em avaliações reais no Google. Resultado: sua nota cresce de forma consistente e mais gente encontra seu negócio na busca.",
+  },
+];
+
+const internalIntelligence = [
+  {
+    icon: ClipboardCheck,
+    title: "Pesquisa de satisfação",
+    description:
+      "Cada cliente recebe o mesmo convite para avaliar a experiência — por QR code ou link, logo após a visita. Você ouve a maioria silenciosa, não só quem reclama, e coleta feedback de forma legítima.",
+  },
+  {
+    icon: Gauge,
+    title: "Análise de sentimento",
+    description:
+      "A IA lê as avaliações e identifica o que os clientes mais elogiam e mais criticam — atendimento, preço, tempo de espera, qualidade — com a proporção de cada tema, para você saber onde está ganhando e onde está perdendo.",
+  },
+  {
+    icon: Lightbulb,
+    title: "Pontos de melhoria",
+    description:
+      "A partir do que os clientes dizem, o Reputamax aponta os problemas mais recorrentes e recomenda ações concretas para os próximos 90 dias. Você para de adivinhar e age sobre o que realmente afeta sua nota.",
   },
 ];
 
@@ -131,11 +152,39 @@ const withItems = [
   "Relatórios mostrando exatamente onde melhorar",
 ];
 
-const impactNumbers = [
-  { value: "90%", description: "dos consumidores leem avaliações antes de visitar um negócio local" },
-  { value: "3x", description: "clientes insatisfeitos têm 3x mais chance de avaliar do que os satisfeitos" },
-  { value: "35%", description: "mais clientes com nota acima de 4.5 vs abaixo de 4.0" },
-  { value: "45%", description: "dos consumidores evitam negócios que não respondem avaliações negativas" },
+const BRIGHTLOCAL_URL = "https://www.brightlocal.com/research/local-consumer-review-survey/";
+
+const impactNumbers: {
+  headline: string;
+  description: string;
+  big: boolean;
+  source?: string;
+}[] = [
+  {
+    headline: "93%",
+    big: true,
+    description: "dos consumidores leem avaliações online antes de visitar um negócio local.",
+    source: "BrightLocal — Local Consumer Review Survey",
+  },
+  {
+    headline: "88% vs 47%",
+    big: true,
+    description:
+      "88% dos consumidores usariam um negócio que responde a todas as avaliações — contra apenas 47% que usariam um que não responde a nenhuma.",
+    source: "BrightLocal — Local Consumer Review Survey",
+  },
+  {
+    headline: "A maioria silenciosa",
+    big: false,
+    description:
+      "Clientes insatisfeitos tendem a avaliar espontaneamente com muito mais frequência do que os satisfeitos. Sem um convite ativo, sua nota fica naturalmente puxada para baixo — seus clientes felizes saem calados.",
+  },
+  {
+    headline: "Cada décimo conta",
+    big: false,
+    description:
+      "Negócios bem avaliados atraem mais clientes do que concorrentes com nota baixa — a diferença de algumas décimas na sua média no Google decide quem entra pela porta.",
+  },
 ];
 
 const audiences = [
@@ -369,13 +418,8 @@ export default function LandingPage() {
                     <problem.icon className="size-40 -rotate-12" />
                   </div>
                   <CardContent className="relative flex flex-col gap-5 p-8">
-                    <div className="flex items-center justify-between">
-                      <div className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-danger/20 to-danger/5 text-danger shadow-inner shadow-danger/20 ring-1 ring-danger/20">
-                        <problem.icon className="size-7" />
-                      </div>
-                      <span className="font-heading text-3xl font-bold text-danger/80">
-                        {problem.stat}
-                      </span>
+                    <div className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-danger/20 to-danger/5 text-danger shadow-inner shadow-danger/20 ring-1 ring-danger/20">
+                      <problem.icon className="size-7" />
                     </div>
                     <div className="flex flex-col gap-2">
                       <h3 className="text-xl font-heading font-bold tracking-tight text-foreground/90">
@@ -394,8 +438,8 @@ export default function LandingPage() {
             <div className="mt-8 relative overflow-hidden rounded-xl border border-warning/20 bg-gradient-to-r from-warning/10 via-surface to-transparent p-8 text-center sm:text-left sm:flex sm:items-center sm:justify-between shadow-sm">
               <div className="absolute left-0 top-0 h-full w-1.5 bg-warning" />
               <p className="text-lg font-heading font-semibold text-foreground/90 max-w-3xl">
-                A diferença entre <span className="font-bold text-foreground">3.8</span> e <span className="font-bold text-foreground">4.6</span> estrelas pode significar até{" "}
-                <span className="text-warning font-bold bg-warning/10 px-2 py-0.5 rounded-md inline-block mt-1 sm:mt-0">35% mais clientes</span> entrando pela sua porta.
+                A diferença entre <span className="font-bold text-foreground">3.8</span> e <span className="font-bold text-foreground">4.6</span> estrelas pode ser o que decide se o cliente{" "}
+                <span className="text-warning font-bold bg-warning/10 px-2 py-0.5 rounded-md inline-block mt-1 sm:mt-0">entra na sua porta</span> ou na do concorrente.
               </p>
             </div>
           </AnimateOnScroll>
@@ -450,6 +494,51 @@ export default function LandingPage() {
               </Button>
             </div>
           </AnimateOnScroll>
+        </div>
+      </section>
+
+      {/* ─── Inteligência interna ─── */}
+      <section className="border-t">
+        <div className="mx-auto w-full max-w-[1100px] px-4 py-20">
+          <AnimateOnScroll>
+            <div className="flex flex-col items-center gap-3 text-center">
+              <Badge variant="secondary" className="bg-accent text-accent-foreground">
+                Inteligência interna
+              </Badge>
+              <h2 className="max-w-2xl text-3xl font-heading font-bold tracking-tight">
+                Mais do que coletar avaliações: entender o que seus clientes dizem
+              </h2>
+              <p className="max-w-xl text-lg text-foreground/80">
+                O Reputamax ouve todos os seus clientes, lê o que eles escrevem e
+                transforma isso em decisões — sem nunca escolher quem avalia por nota
+                ou sentimento.
+              </p>
+            </div>
+          </AnimateOnScroll>
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {internalIntelligence.map((item, i) => (
+              <AnimateOnScroll key={item.title} delay={i * 120}>
+                <Card className="card-hover-glow group relative h-full overflow-hidden rounded-xl border border-border/50 bg-background shadow-none">
+                  <div className="absolute -right-6 -top-6 text-primary/[0.03] transition-transform duration-500 group-hover:scale-110 group-hover:text-primary/[0.05]">
+                    <item.icon className="size-40 rotate-12" />
+                  </div>
+                  <CardContent className="relative flex flex-col gap-5 p-8">
+                    <div className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-inner shadow-primary/20 ring-1 ring-primary/20">
+                      <item.icon className="size-7" />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <h3 className="text-xl font-heading font-bold tracking-tight text-foreground/90">
+                        {item.title}
+                      </h3>
+                      <p className="text-base leading-relaxed text-foreground/80">
+                        {item.description}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </AnimateOnScroll>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -536,15 +625,29 @@ export default function LandingPage() {
             <h2 className="text-3xl font-heading font-bold tracking-tight">O peso real das avaliações</h2>
           </div>
         </AnimateOnScroll>
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {impactNumbers.map((stat, i) => (
-            <AnimateOnScroll key={stat.value} delay={i * 120}>
-              <div className="flex flex-col items-center gap-2 text-center">
+            <AnimateOnScroll key={stat.headline} delay={i * 120}>
+              <div className="flex h-full flex-col items-center gap-2 text-center">
                 <CountUp
-                  value={stat.value}
-                  className="text-4xl font-heading font-bold text-gradient"
+                  value={stat.headline}
+                  className={
+                    stat.big
+                      ? "text-4xl font-heading font-bold text-gradient"
+                      : "text-2xl font-heading font-bold text-gradient"
+                  }
                 />
                 <p className="text-sm text-foreground/80">{stat.description}</p>
+                {stat.source ? (
+                  <a
+                    href={BRIGHTLOCAL_URL}
+                    target="_blank"
+                    rel="noopener"
+                    className="mt-auto pt-1 text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                  >
+                    Fonte: {stat.source}
+                  </a>
+                ) : null}
               </div>
             </AnimateOnScroll>
           ))}
