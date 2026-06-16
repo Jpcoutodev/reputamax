@@ -14,11 +14,14 @@ export default function MarketingLayout({
         <div className="mx-auto flex h-16 w-full max-w-[1100px] items-center justify-between px-4">
           <Logo landscape />
           {/* desktop: botões inline */}
-          <nav className="hidden items-center gap-2 sm:flex">
+          <nav className="hidden items-center gap-1 sm:flex">
+            <Button variant="ghost" render={<Link href="/blog" />}>
+              Blog
+            </Button>
             <Button variant="ghost" render={<Link href="/login" />}>
               Entrar
             </Button>
-            <Button render={<Link href="/diagnostico" />}>
+            <Button render={<Link href="/diagnostico" />} className="ml-1">
               Diagnóstico grátis
             </Button>
           </nav>

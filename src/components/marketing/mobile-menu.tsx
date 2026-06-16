@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogIn, Menu, Search } from "lucide-react";
+import { LogIn, Menu, Newspaper, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -25,6 +25,10 @@ export function MarketingMobileMenu() {
         <DropdownMenuItem render={<Link href="/diagnostico" />}>
           <Search className="size-4" />
           Fazer diagnóstico grátis
+        </DropdownMenuItem>
+        <DropdownMenuItem render={<Link href="/blog" />}>
+          <Newspaper className="size-4" />
+          Blog
         </DropdownMenuItem>
         <DropdownMenuItem render={<Link href="/login" />}>
           <LogIn className="size-4" />
