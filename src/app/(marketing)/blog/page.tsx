@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { formatPostDate, getAllPosts } from "@/lib/blog";
@@ -36,22 +37,35 @@ export default function BlogIndexPage() {
             <li key={post.slug}>
               <Link
                 href={`/blog/${post.slug}`}
-                className="group flex flex-col gap-2 py-6 transition-opacity hover:opacity-80"
+                className="group flex flex-col gap-4 py-6 transition-opacity hover:opacity-80 sm:flex-row sm:items-start"
               >
-                <time
-                  dateTime={post.date}
-                  className="text-sm text-muted-foreground"
-                >
-                  {formatPostDate(post.date)}
-                </time>
-                <h2 className="font-heading text-xl font-bold tracking-tight">
-                  {post.title}
-                </h2>
-                <p className="text-muted-foreground">{post.description}</p>
-                <span className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
-                  Ler artigo
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                </span>
+                {post.image && (
+                  <div className="w-full shrink-0 overflow-hidden rounded-lg sm:w-48">
+                    <Image
+                      src={post.image}
+                      alt={post.title}
+                      width={384}
+                      height={216}
+                      className="aspect-video h-auto w-full object-cover transition-transform group-hover:scale-105"
+                    />
+                  </div>
+                )}
+                <div className="flex flex-col gap-2">
+                  <time
+                    dateTime={post.date}
+                    className="text-sm text-muted-foreground"
+                  >
+                    {formatPostDate(post.date)}
+                  </time>
+                  <h2 className="font-heading text-xl font-bold tracking-tight">
+                    {post.title}
+                  </h2>
+                  <p className="text-muted-foreground">{post.description}</p>
+                  <span className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
+                    Ler artigo
+                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </div>
               </Link>
             </li>
           ))}

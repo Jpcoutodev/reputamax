@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -97,6 +98,19 @@ export default async function BlogPostPage({ params }: PageProps) {
           <time dateTime={post.date}>{formatPostDate(post.date)}</time>
         </div>
       </header>
+
+      {post.image && (
+        <div className="mt-8 overflow-hidden rounded-xl">
+          <Image
+            src={post.image}
+            alt={post.title}
+            width={1200}
+            height={630}
+            className="h-auto w-full object-cover"
+            priority
+          />
+        </div>
+      )}
 
       <div className="mt-8">
         <Post />
