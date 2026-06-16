@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -122,6 +122,7 @@ export default async function AdminLogsPage({ searchParams }: PageProps) {
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Duração</TableHead>
                   <TableHead>Negócio / erro</TableHead>
+                  <TableHead className="text-right">Detalhe</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -168,6 +169,12 @@ export default async function AdminLogsPage({ searchParams }: PageProps) {
                           {r.businessName ?? "—"}
                         </span>
                       )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button size="sm" variant="outline" render={<Link href={`/admin/logs/${r.id}`} />}>
+                        <Eye className="size-3.5" />
+                        Ver
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

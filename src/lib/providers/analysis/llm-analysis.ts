@@ -36,10 +36,17 @@ export type AnalysisLogger = (entry: {
   durationMs: number;
   error?: string;
   businessName?: string;
+  request?: string;
+  response?: string;
 }) => void;
 
 function errMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
+}
+
+/** Serializa as mensagens enviadas num texto legível para o log. */
+function formatRequest(messages: ChatMessage[]): string {
+  return messages.map((m) => `[${m.role}]\n${m.content}`).join("\n\n");
 }
 
 export interface PromptOverrides {
@@ -168,33 +175,34 @@ export function createLlmAnalysisProvider(
         competitors,
         options
       );
+      const messages: ChatMessage[] = [
+        {
+          role: "system",
+          content: overrides.analysisSystem || DEFAULT_ANALYSIS_SYSTEM_PROMPT,
+        },
+        {
+          role: "user",
+          content: buildAnalysisUserPrompt(
+            business,
+            reviews,
+            competitors,
+            base,
+            overrides.analysisRules || DEFAULT_ANALYSIS_RULES
+          ),
+        },
+      ];
+      const requestText = formatRequest(messages);
       const start = Date.now();
       try {
-        const content = await complete(
-          [
-            {
-              role: "system",
-              content: overrides.analysisSystem || DEFAULT_ANALYSIS_SYSTEM_PROMPT,
-            },
-            {
-              role: "user",
-              content: buildAnalysisUserPrompt(
-                business,
-                reviews,
-                competitors,
-                base,
-                overrides.analysisRules || DEFAULT_ANALYSIS_RULES
-              ),
-            },
-          ],
-          2000
-        );
+        const content = await complete(messages, 2000);
         const parsed = enrichmentSchema.parse(extractJson(content));
         log?.({
           operation: "analyze",
           status: "ok",
           durationMs: Date.now() - start,
           businessName: business.name,
+          request: requestText,
+          response: content,
         });
         return {
           ...base,
@@ -214,32 +222,34 @@ export function createLlmAnalysisProvider(
           durationMs: Date.now() - start,
           error: errMessage(err),
           businessName: business.name,
+          request: requestText,
         });
         return base;
       }
     },
 
     async suggestReply(review, businessName, tone): Promise<string> {
+      const system = (overrides.replySystem || DEFAULT_REPLY_SYSTEM_PROMPT)
+        .replaceAll("{businessName}", businessName)
+        .replaceAll("{toneInstructions}", toneInstructions[tone]);
+      const messages: ChatMessage[] = [
+        { role: "system", content: system },
+        {
+          role: "user",
+          content: `Avaliação de ${review.authorName} (${review.rating} de 5 estrelas):\n"${review.text}"`,
+        },
+      ];
+      const requestText = formatRequest(messages);
       const start = Date.now();
       try {
-        const system = (overrides.replySystem || DEFAULT_REPLY_SYSTEM_PROMPT)
-          .replaceAll("{businessName}", businessName)
-          .replaceAll("{toneInstructions}", toneInstructions[tone]);
-        const reply = await complete(
-          [
-            { role: "system", content: system },
-            {
-              role: "user",
-              content: `Avaliação de ${review.authorName} (${review.rating} de 5 estrelas):\n"${review.text}"`,
-            },
-          ],
-          400
-        );
+        const reply = await complete(messages, 400);
         log?.({
           operation: "reply",
           status: "ok",
           durationMs: Date.now() - start,
           businessName,
+          request: requestText,
+          response: reply,
         });
         return reply;
       } catch (err) {
@@ -250,6 +260,7 @@ export function createLlmAnalysisProvider(
           durationMs: Date.now() - start,
           error: errMessage(err),
           businessName,
+          request: requestText,
         });
         return mockAnalysisProvider.suggestReply(review, businessName, tone);
       }

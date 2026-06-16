@@ -41,6 +41,8 @@ export const getAnalysisProvider = cache(async (): Promise<AnalysisProvider> => 
       error: e.error,
       durationMs: e.durationMs,
       businessName: e.businessName,
+      request: e.request,
+      response: e.response,
     });
   };
 

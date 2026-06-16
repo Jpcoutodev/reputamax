@@ -18,7 +18,12 @@ export interface AiLogEntry {
   durationMs: number;
   businessName?: string;
   diagnosticId?: string;
+  request?: string;
+  response?: string;
 }
+
+// limite por campo para não inchar o banco (prompt/resposta de debug)
+const MAX_FIELD = 24_000;
 
 /** Grava um log (fire-and-forget; nunca lança). */
 export async function logAiCall(entry: AiLogEntry): Promise<void> {
@@ -32,6 +37,8 @@ export async function logAiCall(entry: AiLogEntry): Promise<void> {
       status: entry.status,
       fallback: entry.fallback,
       error: entry.error?.slice(0, 1000) ?? null,
+      request: entry.request?.slice(0, MAX_FIELD) ?? null,
+      response: entry.response?.slice(0, MAX_FIELD) ?? null,
       duration_ms: entry.durationMs,
       business_name: entry.businessName ?? null,
       diagnostic_id: entry.diagnosticId ?? null,
@@ -130,5 +137,39 @@ export async function getAiLogs(filters: AiLogFilters): Promise<AiLogsResult> {
       fallback: fbCount.count ?? 0,
       tableMissing: false,
     },
+  };
+}
+
+export interface AiLogDetail extends AiLogRow {
+  request: string | null;
+  response: string | null;
+}
+
+/** Detalhe completo de um log (inclui prompt enviado e resposta crua). */
+export async function getAiLog(id: string): Promise<AiLogDetail | null> {
+  if (!supabaseAdminConfigured()) return null;
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("ai_logs")
+    .select(
+      "id, operation, provider, model, status, fallback, error, request, response, duration_ms, business_name, created_at"
+    )
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !data) return null;
+
+  return {
+    id: data.id,
+    operation: data.operation,
+    provider: data.provider,
+    model: data.model,
+    status: data.status,
+    fallback: data.fallback ?? false,
+    error: data.error,
+    request: data.request,
+    response: data.response,
+    durationMs: data.duration_ms,
+    businessName: data.business_name,
+    createdAt: data.created_at,
   };
 }
