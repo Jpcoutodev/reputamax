@@ -121,8 +121,8 @@ export const mockAnalysisProvider: AnalysisProvider = {
       : "Responda 100% das avaliações, positivas e negativas: respostas mostram ao Google e aos clientes que o negócio é ativo e cuida da relação.";
 
     const recommendations = [
-      "Automatize o pedido de avaliações: peça a nota a cada cliente atendido com um QR code ou link — clientes satisfeitos avaliam quando o pedido chega na hora certa.",
-      "Intercepte críticas antes de virarem públicas: direcione notas baixas para um canal privado de feedback e resolva o problema direto com o cliente.",
+      "Automatize o pedido de avaliações: convide todos os clientes a avaliar com um QR code ou link logo após o atendimento — quanto mais avaliações reais, mais a sua média reflete a qualidade do seu serviço.",
+      "Ofereça um canal direto de feedback e resolva rápido: quando o cliente consegue falar com você e ter o problema resolvido, a relação melhora — e isso se reflete nas próximas avaliações.",
       responseRec,
       topCritica
         ? `Ataque a causa raiz de "${topCritica.theme.toLowerCase()}": é o tema mais citado nas críticas e o que mais derruba sua nota.`

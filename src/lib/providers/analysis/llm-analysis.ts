@@ -66,7 +66,7 @@ export const DEFAULT_ANALYSIS_SYSTEM_PROMPT =
 export const DEFAULT_ANALYSIS_RULES =
   `Regras:
 - exatamente 3 criticalIssues e 5 recommendations;
-- a recommendation 1 deve ser sobre automatizar o pedido de avaliações aos clientes satisfeitos (QR code/link na hora do atendimento);
+- a recommendation 1 deve ser sobre automatizar o pedido de avaliações a TODOS os clientes (QR code/link logo após o atendimento), aumentando o volume de avaliações reais — nunca sugira selecionar ou filtrar quem avalia por nota/sentimento;
 - sentimentThemes: 3 a 6 temas baseados nos textos reais das avaliações; pct = % aproximado das avaliações que citam o tema;
 - examples: trechos LITERAIS curtos copiados das avaliações fornecidas.`;
 

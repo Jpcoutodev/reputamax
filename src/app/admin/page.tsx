@@ -94,9 +94,9 @@ export default async function AdminDashboardPage() {
             semaphore={conversionRate >= 20 ? "verde" : "neutro"}
           />
           <MetricCard
-            label="Críticas interceptadas"
+            label="Feedbacks privados"
             value={String(overview.interceptedTotal)}
-            hint={`de ${overview.funnelResponsesTotal} respostas de funil — o número que vende`}
+            hint={`de ${overview.funnelResponsesTotal} respostas de funil`}
             semaphore="verde"
             icon={<MessageSquareWarning className="size-4 text-muted-foreground" />}
           />

@@ -24,7 +24,7 @@ export const faqs: Faq[] = [
   {
     question: "Como o sistema faz minha nota subir?",
     answer:
-      "Com dois movimentos: primeiro, sua página de avaliação inteligente direciona clientes satisfeitos para o Google e intercepta críticas em privado — assim os elogios viram estrelas públicas e os problemas chegam só pra você resolver. Segundo, a IA te ajuda a responder 100% das avaliações, o que melhora sua imagem e seu posicionamento na busca local.",
+      "Sua nota sobe por volume, não por filtro. O Reputamax convida todos os seus clientes a avaliar de forma consistente — e como a maioria dos clientes de um bom negócio é satisfeita, o volume de avaliações positivas reais faz sua média crescer naturalmente. Além disso, respondemos cada avaliação com IA e te alertamos sobre notas baixas na hora, para você resolver o problema direto com o cliente. Não selecionamos quem avalia: todos recebem o mesmo convite, em conformidade com as políticas do Google.",
   },
   {
     question: "É seguro conectar minha conta Google?",

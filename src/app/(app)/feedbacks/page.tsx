@@ -12,10 +12,10 @@ export default async function FeedbacksPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-medium tracking-tight">Feedbacks interceptados</h1>
+        <h1 className="text-2xl font-medium tracking-tight">Feedbacks privados</h1>
         <p className="text-sm text-muted-foreground">
-          Críticas que chegaram em privado — e não viraram estrelas vermelhas no
-          Google. Resolva com o cliente e marque como resolvido.
+          Clientes que preferiram falar diretamente com você pela sua página de
+          avaliação. Resolva o problema com o cliente e marque como resolvido.
         </p>
       </div>
       <FeedbacksList feedbacks={feedbacks} persisted={Boolean(business.id)} />

@@ -24,7 +24,7 @@ export default function TermosPage() {
       <h2>1. O serviço</h2>
       <p>
         O Reputamax é uma plataforma de gestão de reputação para negócios locais que
-        oferece: diagnóstico da reputação no Google, página de avaliação com filtro
+        oferece: diagnóstico da reputação no Google, página de avaliação
         inteligente, geração de QR code, painel de métricas e sugestões de resposta a
         avaliações com inteligência artificial.
       </p>

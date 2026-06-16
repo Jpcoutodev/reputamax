@@ -39,8 +39,8 @@ export default async function DashboardPage() {
       rating: f.rating,
       text:
         f.rating >= 4
-          ? "Cliente avaliou bem e foi direcionado para o Google"
-          : `Crítica interceptada: "${(f.feedbackText ?? "sem comentário").slice(0, 80)}…"`,
+          ? "Avaliação positiva recebida pela sua página"
+          : `Feedback privado recebido: "${(f.feedbackText ?? "sem comentário").slice(0, 80)}…"`,
     })),
     ...reviews.slice(0, 3).map((r) => ({
       id: r.id,
@@ -91,9 +91,9 @@ export default async function DashboardPage() {
           semaphore="verde"
         />
         <MetricCard
-          label="Críticas interceptadas"
+          label="Feedbacks privados"
           value={String(intercepted)}
-          hint="críticas que NÃO viraram público"
+          hint="clientes que falaram com você pelo canal privado"
           semaphore="verde"
           icon={<MessageSquareWarning className="size-4 text-muted-foreground" />}
         />
@@ -138,7 +138,7 @@ export default async function DashboardPage() {
                   </span>
                   {activity.kind === "funil_critica" ? (
                     <Badge variant="secondary" className="shrink-0 bg-warning-soft text-warning">
-                      Interceptada
+                      Feedback privado
                     </Badge>
                   ) : null}
                   <span className="shrink-0 text-xs text-muted-foreground">

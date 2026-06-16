@@ -21,10 +21,10 @@ const plans = [
     price: "R$ 97",
     description: "Para começar a coletar avaliações no piloto automático.",
     features: [
-      "Página de avaliação com filtro inteligente",
+      "Página de avaliação inteligente",
       "QR code pronto pra imprimir (PNG e PDF)",
       "Dashboard de reputação",
-      "Feedbacks negativos interceptados",
+      "Canal de feedback privado dos clientes",
     ],
     highlight: false,
   },

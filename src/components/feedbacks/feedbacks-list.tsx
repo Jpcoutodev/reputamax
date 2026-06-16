@@ -44,10 +44,10 @@ export function FeedbacksList({ feedbacks: initial, persisted }: FeedbacksListPr
       <Card className="rounded-xl border shadow-none">
         <CardContent className="flex flex-col items-center gap-3 p-12 text-center">
           <PartyPopper className="size-8 text-success" />
-          <p className="font-medium">Nenhuma crítica interceptada ainda — bom sinal!</p>
+          <p className="font-medium">Nenhum feedback privado ainda — bom sinal!</p>
           <p className="text-sm text-muted-foreground">
-            Quando um cliente der nota baixa na sua página de avaliação, o
-            feedback aparece aqui em vez de ir pro Google.
+            Quando um cliente quiser falar diretamente com você pela sua página de
+            avaliação, a mensagem aparece aqui para você resolver.
           </p>
         </CardContent>
       </Card>

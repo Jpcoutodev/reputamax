@@ -272,8 +272,8 @@ export function PageSettings({
               />
               <p className="text-xs text-muted-foreground">
                 No perfil da sua empresa no Google, toque em &ldquo;Pedir
-                avaliações&rdquo; e copie o link exibido. É pra lá que enviamos
-                os clientes satisfeitos.
+                avaliações&rdquo; e copie o link exibido. É para esse link que
+                levamos os clientes que querem avaliar você no Google.
               </p>
             </div>
 

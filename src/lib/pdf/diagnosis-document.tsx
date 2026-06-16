@@ -293,9 +293,9 @@ export function DiagnosisDocument({ business, result, generatedAt }: Props) {
           <View style={styles.cta} wrap={false}>
             <Text style={styles.ctaTitle}>Pronto para resolver isso?</Text>
             <Text style={styles.ctaText}>
-              O Reputamax automatiza o pedido de avaliacoes, intercepta criticas e
-              responde por voce - tudo que este relatorio recomenda. 14 dias gratis,
-              sem cartao. reputamax.app
+              O Reputamax automatiza o pedido de avaliacoes a todos os clientes,
+              responde tudo com IA e te alerta sobre notas baixas na hora - tudo que
+              este relatorio recomenda. 14 dias gratis, sem cartao. reputamax.app
             </Text>
           </View>
         </View>

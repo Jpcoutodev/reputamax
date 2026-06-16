@@ -91,7 +91,7 @@ const solutions = [
     icon: TrendingUp,
     title: "Sua nota subindo mês a mês",
     description:
-      "O Reputamax usa um motor inteligente que canaliza a voz dos seus clientes satisfeitos para o lugar certo. Resultado: mais avaliações positivas no Google, sua nota crescendo de forma consistente e mais clientes encontrando seu negócio na busca.",
+      "Seu cliente satisfeito vai embora calado; o insatisfeito é quem escreve. O Reputamax inverte isso: convida cada cliente a avaliar e transforma a maioria silenciosa em avaliações reais no Google. Resultado: sua nota cresce de forma consistente e mais gente encontra seu negócio na busca.",
   },
 ];
 
@@ -107,7 +107,7 @@ const steps = [
   {
     title: "Ative a gestão ativa",
     description:
-      "Respostas com IA, alertas em tempo real e coleta de avaliações começam a funcionar automaticamente.",
+      "Respostas com IA, alertas em tempo real e convites de avaliação enviados após a visita começam a funcionar automaticamente.",
   },
   {
     title: "Veja sua nota subir",
@@ -125,7 +125,7 @@ const withoutItems = [
 
 const withItems = [
   "Toda avaliação respondida em minutos com IA",
-  "Clientes satisfeitos direcionados para avaliar no Google",
+  "Todos os clientes convidados a avaliar — não só os insatisfeitos que reclamam sozinhos",
   "Nota subindo mês a mês",
   "Mais clientes chegando pela busca do Google",
   "Relatórios mostrando exatamente onde melhorar",

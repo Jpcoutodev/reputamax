@@ -191,8 +191,9 @@ export default function RelatorioPage() {
           Pronto para resolver isso?
         </h2>
         <p className="max-w-md text-sm text-white/70">
-          O Reputamax automatiza o pedido de avaliações, intercepta críticas e
-          responde por você — tudo que este relatório recomenda.
+          O Reputamax automatiza o pedido de avaliações a todos os clientes,
+          responde tudo com IA e te alerta sobre notas baixas na hora — tudo que
+          este relatório recomenda.
         </p>
         <div className="flex w-full flex-col items-stretch justify-center gap-3 sm:w-auto sm:flex-row sm:items-center">
           <Button
