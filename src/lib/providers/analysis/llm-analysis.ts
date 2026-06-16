@@ -29,6 +29,19 @@ export interface ChatMessage {
 /** Função de completação de cada provider (server-only, chave no servidor). */
 export type LlmComplete = (messages: ChatMessage[], maxTokens: number) => Promise<string>;
 
+/** Reporta o resultado de cada chamada (provider/modelo são adicionados pelo caller). */
+export type AnalysisLogger = (entry: {
+  operation: "analyze" | "reply";
+  status: "ok" | "fallback";
+  durationMs: number;
+  error?: string;
+  businessName?: string;
+}) => void;
+
+function errMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 export interface PromptOverrides {
   /** persona/system da análise do diagnóstico */
   analysisSystem?: string;
@@ -143,7 +156,8 @@ ${rules}`;
 /** Cria um AnalysisProvider a partir da função de completação de um LLM. */
 export function createLlmAnalysisProvider(
   complete: LlmComplete,
-  overrides: PromptOverrides = {}
+  overrides: PromptOverrides = {},
+  log?: AnalysisLogger
 ): AnalysisProvider {
   return {
     async analyzeReviews(business, reviews, competitors, options): Promise<DiagnosisResult> {
@@ -154,6 +168,7 @@ export function createLlmAnalysisProvider(
         competitors,
         options
       );
+      const start = Date.now();
       try {
         const content = await complete(
           [
@@ -175,6 +190,12 @@ export function createLlmAnalysisProvider(
           2000
         );
         const parsed = enrichmentSchema.parse(extractJson(content));
+        log?.({
+          operation: "analyze",
+          status: "ok",
+          durationMs: Date.now() - start,
+          businessName: business.name,
+        });
         return {
           ...base,
           summary: parsed.summary,
@@ -187,16 +208,24 @@ export function createLlmAnalysisProvider(
         };
       } catch (err) {
         console.error("[llm] analyzeReviews falhou, usando análise determinística:", err);
+        log?.({
+          operation: "analyze",
+          status: "fallback",
+          durationMs: Date.now() - start,
+          error: errMessage(err),
+          businessName: business.name,
+        });
         return base;
       }
     },
 
     async suggestReply(review, businessName, tone): Promise<string> {
+      const start = Date.now();
       try {
         const system = (overrides.replySystem || DEFAULT_REPLY_SYSTEM_PROMPT)
           .replaceAll("{businessName}", businessName)
           .replaceAll("{toneInstructions}", toneInstructions[tone]);
-        return await complete(
+        const reply = await complete(
           [
             { role: "system", content: system },
             {
@@ -206,8 +235,22 @@ export function createLlmAnalysisProvider(
           ],
           400
         );
+        log?.({
+          operation: "reply",
+          status: "ok",
+          durationMs: Date.now() - start,
+          businessName,
+        });
+        return reply;
       } catch (err) {
         console.error("[llm] suggestReply falhou, usando template:", err);
+        log?.({
+          operation: "reply",
+          status: "fallback",
+          durationMs: Date.now() - start,
+          error: errMessage(err),
+          businessName,
+        });
         return mockAnalysisProvider.suggestReply(review, businessName, tone);
       }
     },

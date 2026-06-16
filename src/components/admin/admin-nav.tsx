@@ -7,6 +7,7 @@ import {
   FileSearch,
   Globe,
   LayoutDashboard,
+  ScrollText,
   Settings,
   Users,
 } from "lucide-react";
@@ -17,6 +18,7 @@ const items = [
   { href: "/admin/diagnostico", label: "Gerar diagnóstico", icon: FileSearch, exact: false },
   { href: "/admin/crm", label: "CRM", icon: Users, exact: false },
   { href: "/admin/landing", label: "Landing page", icon: Globe, exact: false },
+  { href: "/admin/logs", label: "Logs de avaliação", icon: ScrollText, exact: false },
   { href: "/admin/configuracoes", label: "Configurações", icon: Settings, exact: false },
 ];
 
