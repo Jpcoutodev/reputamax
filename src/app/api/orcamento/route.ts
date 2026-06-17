@@ -7,6 +7,7 @@ import { clientIp, rateLimit } from "@/lib/rate-limit";
 const schema = z.object({
   name: z.string().trim().min(2, "Informe seu nome.").max(120),
   company: z.string().trim().min(1, "Informe a empresa.").max(160),
+  whatsapp: z.string().trim().min(1).max(30),
   segment: z.string().trim().max(120).optional(),
   storeCount: z.coerce.number().int().min(1).max(100000).optional(),
   diagnosticoId: z.string().uuid().optional(),
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
   const { error } = await admin.from("quote_requests").insert({
     name: input.name,
     company: input.company,
+    whatsapp: input.whatsapp,
     segment: input.segment ?? null,
     store_count: input.storeCount ?? null,
     diagnostic_id: diagnosticId,

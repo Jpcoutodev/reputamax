@@ -25,6 +25,7 @@ export function QuoteRequestButton({ diagnosticoId }: QuoteRequestButtonProps) {
 
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
   const [segment, setSegment] = useState("");
   const [storeCount, setStoreCount] = useState("");
 
@@ -32,6 +33,10 @@ export function QuoteRequestButton({ diagnosticoId }: QuoteRequestButtonProps) {
     e.preventDefault();
     if (name.trim().length < 2 || company.trim().length < 1) {
       toast.error("Preencha pelo menos nome e empresa.");
+      return;
+    }
+    if (whatsapp.replace(/\D/g, "").length < 10) {
+      toast.error("Digite um WhatsApp válido com DDD.");
       return;
     }
     setSubmitting(true);
@@ -42,6 +47,7 @@ export function QuoteRequestButton({ diagnosticoId }: QuoteRequestButtonProps) {
         body: JSON.stringify({
           name: name.trim(),
           company: company.trim(),
+          whatsapp: whatsapp.trim(),
           segment: segment.trim() || undefined,
           storeCount: storeCount ? Number(storeCount.replace(/\D/g, "")) : undefined,
           diagnosticoId,
@@ -67,6 +73,7 @@ export function QuoteRequestButton({ diagnosticoId }: QuoteRequestButtonProps) {
         setDone(false);
         setName("");
         setCompany("");
+        setWhatsapp("");
         setSegment("");
         setStoreCount("");
       }, 200);
@@ -124,6 +131,17 @@ export function QuoteRequestButton({ diagnosticoId }: QuoteRequestButtonProps) {
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
                     placeholder="Nome da sua empresa"
+                    required
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="q-whatsapp">WhatsApp</Label>
+                  <Input
+                    id="q-whatsapp"
+                    type="tel"
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                    placeholder="(11) 99999-8888"
                     required
                   />
                 </div>

@@ -8,6 +8,7 @@ export interface QuoteRequestRow {
   id: string;
   name: string;
   company: string;
+  whatsapp: string | null;
   segment: string | null;
   storeCount: number | null;
   businessName: string | null;
@@ -38,7 +39,7 @@ export async function getQuoteRequests(): Promise<QuoteRequestsResult> {
   const { data, error, count } = await admin
     .from("quote_requests")
     .select(
-      "id, name, company, segment, store_count, business_name, diagnostic_id, created_at, diagnostics(lead_email, lead_whatsapp)",
+      "id, name, company, whatsapp, segment, store_count, business_name, diagnostic_id, created_at, diagnostics(lead_email, lead_whatsapp)",
       { count: "exact" }
     )
     .order("created_at", { ascending: false })
@@ -58,6 +59,7 @@ export async function getQuoteRequests(): Promise<QuoteRequestsResult> {
       id: r.id,
       name: r.name,
       company: r.company,
+      whatsapp: r.whatsapp,
       segment: r.segment,
       storeCount: r.store_count,
       businessName: r.business_name,

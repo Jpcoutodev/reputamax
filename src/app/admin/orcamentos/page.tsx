@@ -76,30 +76,33 @@ export default async function AdminOrcamentosPage() {
                         {r.storeCount ?? "—"}
                       </TableCell>
                       <TableCell className="text-sm">
-                        {r.leadEmail || r.leadWhatsapp ? (
-                          <span className="flex flex-col">
-                            {r.leadEmail ? (
-                              <a
-                                href={`mailto:${r.leadEmail}`}
-                                className="truncate underline-offset-4 hover:text-primary hover:underline"
-                              >
-                                {r.leadEmail}
-                              </a>
-                            ) : null}
-                            {r.leadWhatsapp ? (
-                              <a
-                                href={`https://wa.me/55${r.leadWhatsapp.replace(/\D/g, "")}`}
-                                target="_blank"
-                                rel="noopener"
-                                className="text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
-                              >
-                                {r.leadWhatsapp}
-                              </a>
-                            ) : null}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
+                        {(() => {
+                          const wpp = r.whatsapp ?? r.leadWhatsapp;
+                          if (!wpp && !r.leadEmail)
+                            return <span className="text-muted-foreground">—</span>;
+                          return (
+                            <span className="flex flex-col">
+                              {wpp ? (
+                                <a
+                                  href={`https://wa.me/55${wpp.replace(/\D/g, "")}`}
+                                  target="_blank"
+                                  rel="noopener"
+                                  className="font-medium underline-offset-4 hover:text-primary hover:underline"
+                                >
+                                  {wpp}
+                                </a>
+                              ) : null}
+                              {r.leadEmail ? (
+                                <a
+                                  href={`mailto:${r.leadEmail}`}
+                                  className="truncate text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+                                >
+                                  {r.leadEmail}
+                                </a>
+                              ) : null}
+                            </span>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell>
                         {r.diagnosticId ? (

@@ -5,12 +5,17 @@ create table quote_requests (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   company text not null,
+  whatsapp text,
   segment text,
   store_count int,
   diagnostic_id uuid references diagnostics(id),
   business_name text,
   created_at timestamptz default now()
 );
+
+-- Se você JÁ rodou a versão anterior desta migration (sem whatsapp),
+-- rode apenas esta linha no lugar do CREATE acima:
+--   alter table quote_requests add column if not exists whatsapp text;
 
 create index idx_quote_requests_date on quote_requests (created_at desc);
 
