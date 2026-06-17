@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { fbqTrack } from "@/components/analytics/facebook-pixel";
 
 interface QuoteRequestButtonProps {
   diagnosticoId: string;
@@ -57,6 +58,12 @@ export function QuoteRequestButton({ diagnosticoId }: QuoteRequestButtonProps) {
         toast.error("Não foi possível enviar. Tente de novo em instantes.");
         return;
       }
+      // Pixel: o Lead só é contabilizado no pedido de orçamento (fundo de funil)
+      fbqTrack("Lead", {
+        content_name: "Orçamento de implantação",
+        content_category: segment.trim() || undefined,
+        num_stores: storeCount ? Number(storeCount.replace(/\D/g, "")) : undefined,
+      });
       setDone(true);
     } catch {
       toast.error("Falha de conexão. Tente de novo.");

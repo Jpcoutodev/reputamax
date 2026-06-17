@@ -3,6 +3,7 @@ import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { MarketingMobileMenu } from "@/components/marketing/mobile-menu";
 import { WhatsAppButton } from "@/components/marketing/whatsapp-button";
+import { FacebookPixel } from "@/components/analytics/facebook-pixel";
 
 export default function MarketingLayout({
   children,
@@ -65,6 +66,7 @@ export default function MarketingLayout({
         </div>
       </footer>
       <WhatsAppButton />
+      <FacebookPixel />
     </div>
   );
 }
