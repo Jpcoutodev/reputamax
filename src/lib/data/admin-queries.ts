@@ -97,7 +97,6 @@ export interface LandingMetrics {
   views: number;
   viewsLast30d: number;
   uniqueSessions: number;
-  diagnosticoViews: number;
   businessesSelected: number;
   diagnosticsCreated: number;
   leadsCaptured: number;
@@ -107,11 +106,10 @@ export async function getLandingMetrics(): Promise<LandingMetrics> {
   const admin = createAdminClient();
   const d30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [views, viewsLast30d, diagnosticoViews, businessesSelected, sessions, diagnosticsCreated, leadsCaptured] =
+  const [views, viewsLast30d, businessesSelected, sessions, diagnosticsCreated, leadsCaptured] =
     await Promise.all([
       count(head(admin, "analytics_events").eq("event", "landing_view")),
       count(head(admin, "analytics_events").eq("event", "landing_view").gte("created_at", d30)),
-      count(head(admin, "analytics_events").eq("event", "diagnostico_view")),
       count(head(admin, "analytics_events").eq("event", "diagnostico_negocio_selecionado")),
       admin
         .from("analytics_events")
@@ -129,7 +127,6 @@ export async function getLandingMetrics(): Promise<LandingMetrics> {
     views,
     viewsLast30d,
     uniqueSessions,
-    diagnosticoViews,
     businessesSelected,
     diagnosticsCreated,
     leadsCaptured,

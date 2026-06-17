@@ -9,9 +9,7 @@ const eventSchema = z.object({
   event: z.enum([
     "landing_view",
     "diagnostico_view",
-    "diagnostico_busca",
     "diagnostico_negocio_selecionado",
-    "cta_clicado",
   ]),
   path: z.string().max(200).optional(),
   sessionId: z.string().max(64).optional(),

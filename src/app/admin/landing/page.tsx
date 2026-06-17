@@ -13,10 +13,11 @@ function pct(part: number, whole: number): string {
 export default async function AdminLandingPage() {
   const m = await getLandingMetrics();
 
+  // funil real: a busca está no hero da landing, então a etapa de intenção é a
+  // seleção de um negócio (não há mais uma página /diagnostico intermediária)
   const funnel = [
     { label: "Visualizações da landing", value: m.views, base: m.views },
-    { label: "Abriram o diagnóstico (busca)", value: m.diagnosticoViews, base: m.views },
-    { label: "Selecionaram um negócio", value: m.businessesSelected, base: m.views },
+    { label: "Selecionaram um negócio na busca", value: m.businessesSelected, base: m.views },
     { label: "Diagnósticos gerados", value: m.diagnosticsCreated, base: m.views },
     { label: "Leads capturados", value: m.leadsCaptured, base: m.views },
   ];
