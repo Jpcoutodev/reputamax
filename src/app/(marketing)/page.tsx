@@ -510,8 +510,7 @@ export default function LandingPage() {
               </h2>
               <p className="max-w-xl text-lg text-foreground/80">
                 O Reputamax ouve todos os seus clientes, lê o que eles escrevem e
-                transforma isso em decisões — sem nunca escolher quem avalia por nota
-                ou sentimento.
+                transforma isso em decisões.
               </p>
             </div>
           </AnimateOnScroll>
