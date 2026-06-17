@@ -27,6 +27,11 @@ export const faqs: Faq[] = [
       "Sua nota sobe por volume, não por filtro. O Reputamax convida todos os seus clientes a avaliar de forma consistente — e como a maioria dos clientes de um bom negócio é satisfeita, o volume de avaliações positivas reais faz sua média crescer naturalmente. Além disso, respondemos cada avaliação com IA e te alertamos sobre notas baixas na hora, para você resolver o problema direto com o cliente. Não selecionamos quem avalia: todos recebem o mesmo convite, em conformidade com as políticas do Google.",
   },
   {
+    question: "O Reputamax compra avaliações ou cria avaliações falsas?",
+    answer:
+      "Não. Comprar avaliações, oferecer recompensas em troca de nota ou criar avaliações falsas são práticas proibidas pelas políticas do Google e podem resultar na remoção de avaliações, suspensão do perfil e penalização na busca. O Reputamax trabalha de forma 100% legítima: convida todos os seus clientes reais a avaliar de forma voluntária e honesta, sem nenhum tipo de incentivo. Sua nota sobe pelo volume real de clientes satisfeitos, não por manipulação.",
+  },
+  {
     question: "É seguro conectar minha conta Google?",
     answer:
       'Sim. Usamos a conexão oficial do Google (OAuth), a mesma tecnologia de "Entrar com Google" que você já usa em outros apps. Não temos acesso à sua senha e você pode revogar a permissão a qualquer momento direto na sua conta Google.',
