@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 // ID público do Pixel (pode ser sobrescrito por env). Não é segredo — fica
 // exposto no navegador de qualquer forma.
@@ -28,8 +28,15 @@ export function fbqTrack(event: string, params?: Record<string, unknown>) {
  */
 export function FacebookPixel() {
   const pathname = usePathname();
+  const firstLoad = useRef(true);
 
   useEffect(() => {
+    // o PageView inicial já é disparado pelo script base; aqui só os
+    // PageViews das navegações client-side (troca de rota)
+    if (firstLoad.current) {
+      firstLoad.current = false;
+      return;
+    }
     if (typeof window !== "undefined" && typeof window.fbq === "function") {
       window.fbq("track", "PageView");
     }
@@ -48,6 +55,7 @@ export function FacebookPixel() {
         t.src=v;s=b.getElementsByTagName(e)[0];
         s.parentNode.insertBefore(t,s)}(window,document,'script',
         'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('set', 'autoConfig', false, '${FB_PIXEL_ID}');
         fbq('init', '${FB_PIXEL_ID}');
         fbq('track', 'PageView');`}
       </Script>
