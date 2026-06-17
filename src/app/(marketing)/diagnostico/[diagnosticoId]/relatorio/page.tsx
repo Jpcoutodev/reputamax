@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { AlertTriangle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MetricCard } from "@/components/metric-card";
 import { ScoreRing, scoreLabel } from "@/components/score-ring";
 import { useDiagnosis } from "@/components/diagnostico/use-diagnosis";
+import { QuoteRequestButton } from "@/components/diagnostico/quote-request-button";
 
 export default function RelatorioPage() {
   const router = useRouter();
@@ -196,13 +196,7 @@ export default function RelatorioPage() {
           este relatório recomenda.
         </p>
         <div className="flex w-full flex-col items-stretch justify-center gap-3 sm:w-auto sm:flex-row sm:items-center">
-          <Button
-            size="lg"
-            className="h-auto whitespace-normal py-3 text-center leading-tight"
-            render={<Link href={`/cadastro?diagnostico=${placeId}`} />}
-          >
-            Resolver isso com o Reputamax — 14 dias grátis, sem cartão
-          </Button>
+          <QuoteRequestButton diagnosticoId={placeId} />
           <Button
             size="lg"
             variant="secondary"

@@ -17,9 +17,9 @@ const leadSchema = z.object({
   email: z.string().email("Digite um e-mail válido — é pra onde enviamos o relatório."),
   whatsapp: z
     .string()
-    .optional()
+    .min(1, "Digite seu WhatsApp com DDD.")
     .refine(
-      (v) => !v || v.replace(/\D/g, "").length >= 10,
+      (v) => v.replace(/\D/g, "").length >= 10,
       "Digite um WhatsApp válido com DDD, ex.: (11) 99999-8888."
     ),
 });
@@ -37,7 +37,7 @@ export default function TeaserPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = leadSchema.safeParse({ email, whatsapp: whatsapp || undefined });
+    const parsed = leadSchema.safeParse({ email, whatsapp });
     if (!parsed.success) {
       const errors: { email?: string; whatsapp?: string } = {};
       for (const issue of parsed.error.issues) {
@@ -152,12 +152,11 @@ export default function TeaserPage() {
           ) : null}
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="whatsapp">
-            WhatsApp <span className="text-muted-foreground">(opcional)</span>
-          </Label>
+          <Label htmlFor="whatsapp">Seu WhatsApp</Label>
           <Input
             id="whatsapp"
             type="tel"
+            required
             value={whatsapp}
             onChange={(e) => setWhatsapp(e.target.value)}
             placeholder="(11) 99999-8888"
