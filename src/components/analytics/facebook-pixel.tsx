@@ -23,6 +23,34 @@ export function fbqTrack(event: string, params?: Record<string, unknown>) {
 }
 
 /**
+ * Dispara um evento já com Advanced Matching (nome/telefone) — melhora a
+ * atribuição. O próprio Pixel normaliza e faz o hash dos dados no cliente.
+ */
+export function fbqTrackWithMatch(
+  event: string,
+  userData: { firstName?: string; phone?: string },
+  params?: Record<string, unknown>
+) {
+  if (typeof window === "undefined" || typeof window.fbq !== "function") return;
+
+  const match: Record<string, string> = {};
+  if (userData.firstName?.trim()) {
+    match.fn = userData.firstName.trim().toLowerCase();
+  }
+  if (userData.phone) {
+    const digits = userData.phone.replace(/\D/g, "");
+    // garante código do país (Brasil = 55) para o match telefônico
+    match.ph = digits.startsWith("55") ? digits : `55${digits}`;
+  }
+  if (Object.keys(match).length > 0) {
+    // re-init com os dados do usuário atualiza o Advanced Matching;
+    // com autoConfig=false não dispara nenhum evento extra
+    window.fbq("init", FB_PIXEL_ID, match);
+  }
+  window.fbq("track", event, params);
+}
+
+/**
  * Pixel do Meta (Facebook). Carrega o script base e registra PageView,
  * inclusive nas navegações client-side (SPA) via mudança de rota.
  */

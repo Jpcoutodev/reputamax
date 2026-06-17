@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AlertTriangle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,14 @@ import { MetricCard } from "@/components/metric-card";
 import { ScoreRing, scoreLabel } from "@/components/score-ring";
 import { useDiagnosis } from "@/components/diagnostico/use-diagnosis";
 import { QuoteRequestButton } from "@/components/diagnostico/quote-request-button";
+import { fbqTrack } from "@/components/analytics/facebook-pixel";
 
 export default function RelatorioPage() {
   const router = useRouter();
   const params = useParams<{ diagnosticoId: string }>();
   const placeId = params.diagnosticoId;
   const { business, result, leadCaptured, loading, error } = useDiagnosis(placeId);
+  const viewTracked = useRef(false);
 
   // relatório só após captura do lead — senão volta pro teaser
   useEffect(() => {
@@ -23,6 +25,18 @@ export default function RelatorioPage() {
       router.replace(`/diagnostico/${placeId}/teaser`);
     }
   }, [loading, error, leadCaptured, placeId, router]);
+
+  // Pixel: ViewContent quando o relatório é efetivamente exibido (meio de funil)
+  useEffect(() => {
+    if (!viewTracked.current && business && result && leadCaptured) {
+      viewTracked.current = true;
+      fbqTrack("ViewContent", {
+        content_name: "Relatório de diagnóstico",
+        content_category: business.category,
+        value: result.score,
+      });
+    }
+  }, [business, result, leadCaptured]);
 
   if (error) {
     return (
