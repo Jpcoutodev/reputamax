@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { MarketingMobileMenu } from "@/components/marketing/mobile-menu";
+import { WhatsAppButton } from "@/components/marketing/whatsapp-button";
 
 export default function MarketingLayout({
   children,
@@ -63,6 +64,7 @@ export default function MarketingLayout({
           </div>
         </div>
       </footer>
+      <WhatsAppButton />
     </div>
   );
 }
