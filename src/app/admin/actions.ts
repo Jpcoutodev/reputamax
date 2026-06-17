@@ -69,6 +69,36 @@ export async function updatePrompt(key: string, value: string): Promise<ActionRe
   return { ok: true };
 }
 
+const uuidSchema = z.string().uuid();
+
+/** Exclui um pedido de orçamento. */
+export async function deleteQuoteRequest(id: string): Promise<ActionResult> {
+  if (!(await ensureAdmin())) return { ok: false, error: "sem_permissao" };
+  if (!uuidSchema.safeParse(id).success) return { ok: false, error: "id_invalido" };
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("quote_requests").delete().eq("id", id);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/admin/orcamentos");
+  return { ok: true };
+}
+
+/** Exclui um lead/diagnóstico do CRM (desvincula orçamentos antes, por causa da FK). */
+export async function deleteDiagnostic(id: string): Promise<ActionResult> {
+  if (!(await ensureAdmin())) return { ok: false, error: "sem_permissao" };
+  if (!uuidSchema.safeParse(id).success) return { ok: false, error: "id_invalido" };
+
+  const admin = createAdminClient();
+  // remove o vínculo dos orçamentos para não violar a chave estrangeira
+  await admin.from("quote_requests").update({ diagnostic_id: null }).eq("diagnostic_id", id);
+  const { error } = await admin.from("diagnostics").delete().eq("id", id);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/admin/crm");
+  return { ok: true };
+}
+
 const crmStageSchema = z.object({
   id: z.string().uuid(),
   stage: z.enum(["diagnostico", "lead", "contatado", "negociacao", "cliente", "perdido"]),

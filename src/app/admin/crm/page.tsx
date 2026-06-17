@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/table";
 import { CrmFilters } from "@/components/admin/crm-filters";
 import { CrmStageSelect } from "@/components/admin/crm-stage-select";
+import { DeleteButton } from "@/components/admin/delete-button";
+import { deleteDiagnostic } from "@/app/admin/actions";
 import { CRM_STAGES, getCrmEntries, type CrmStage } from "@/lib/data/admin-queries";
 
 export const metadata = { title: "CRM" };
@@ -127,14 +129,22 @@ export default async function CrmPage({ searchParams }: PageProps) {
                       {new Date(entry.createdAt).toLocaleDateString("pt-BR")}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        render={<Link href={`/admin/crm/${entry.id}`} />}
-                      >
-                        <FileText className="size-3.5" />
-                        Ver / PDF
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          render={<Link href={`/admin/crm/${entry.id}`} />}
+                        >
+                          <FileText className="size-3.5" />
+                          Ver / PDF
+                        </Button>
+                        <DeleteButton
+                          action={deleteDiagnostic.bind(null, entry.id)}
+                          title="Excluir este lead?"
+                          description={`O diagnóstico de ${entry.businessName} será removido permanentemente do CRM.`}
+                          successMessage="Lead excluído."
+                        />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -10,6 +10,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getQuoteRequests } from "@/lib/data/quote-requests";
+import { DeleteButton } from "@/components/admin/delete-button";
+import { deleteQuoteRequest } from "@/app/admin/actions";
 
 export const metadata = { title: "Pedidos de orçamento" };
 
@@ -55,6 +57,7 @@ export default async function AdminOrcamentosPage() {
                     <TableHead className="text-right">Lojas</TableHead>
                     <TableHead>Contato</TableHead>
                     <TableHead>Negócio</TableHead>
+                    <TableHead className="text-right">Ação</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -117,6 +120,14 @@ export default async function AdminOrcamentosPage() {
                             {r.businessName ?? "—"}
                           </span>
                         )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DeleteButton
+                          action={deleteQuoteRequest.bind(null, r.id)}
+                          title="Excluir pedido de orçamento?"
+                          description={`O pedido de ${r.name} (${r.company}) será removido permanentemente.`}
+                          successMessage="Pedido de orçamento excluído."
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
